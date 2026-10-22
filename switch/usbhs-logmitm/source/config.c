@@ -24,7 +24,7 @@ void config_defaults(lm_config *c) {
     c->buf_dump = 64;
     c->log_keep = 20;
     c->rewrite = RW_TERMINAL;
-    c->remote = true;
+    c->remote = false;   // experimental: hid must be intercepted (programs=...,hid)
 }
 
 static void trim(char **s, char **e) {

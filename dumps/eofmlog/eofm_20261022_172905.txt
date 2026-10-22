@@ -1,0 +1,12 @@
+===== eofm 0.2.2  2026-10-22 17:29:05  HOS 22.1.0 =====
+usbHsInitialize: OK, region kr, freq 9190
+fm: earphone 04e8:a05b seen (device 3), waiting 6000 ms
+fm: acquire IF0 (id 1342242816, device 3): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 0 = 1: OK
+fm: SET 5 = 4: OK
+fm: SET 9 = 9190: OK
+fm: SET 10 = 1: OK
+signal: set 9190, receiver at 9190 (OK), strength 31 (rssi 00 00 OK)
+exit: radio left on in the earphone
+fm: released IF0 (id 1342242816)

@@ -3,6 +3,7 @@
 #include "common.h"
 #include "decode.h"
 #include "log.h"
+#include "remote.h"
 #include "rewrite.h"
 
 // One thread serves everything with svcReplyAndReceive: the mitm ports (new clients), the query
@@ -42,6 +43,9 @@ typedef struct {
     u8   ifnum, alt, ep;     // IF: bInterfaceNumber / alt setting; EP: endpoint address
     s32  if_id;              // usb:hs interface ID
     u16  vid, pid;           // IF/EP: the device, from the interface lists usb:hs returned
+    u64  post_buf;           // EP: buffer of the client's last PostBufferAsync (the remote's reports)
+    u32  post_size;
+    bool ring_noted;
     bool ctrl_pending;       // IN control transfer submitted, its data comes with GetCtrlXferReport
     u8   setup[8];
     u64  ctrl_buf;
@@ -495,7 +499,9 @@ static bool hidden_from(const msess *s, const UsbHsInterface *it) {
     struct usb_device_descriptor dd;
     memcpy(&dd, &it->device_desc, sizeof(dd));
     if (!is_eo_ic100(dd.idVendor, dd.idProduct)) return false;
-    if (s->program == PROGRAM_HID) return M.cfg->remote && it->inf.interface_desc.bInterfaceClass == 3;
+    // hid: not any more. With the remote's IF3/IF4 hidden from hid (0.3.0/0.3.1) the audio sysmodule
+    // stopped taking the earphone as its output; hid keeps them and watch_remote() reads its reports.
+    if (s->program == PROGRAM_HID) return false;
     if (s->program == PROGRAM_AUDIO) return audio_hidden();
     return false;
 }
@@ -522,8 +528,6 @@ static void hide_interfaces(msess *s, objst *o, void *list, size_t size, u8 *cou
     log_printf("     hidden from %s: %d EO-IC100 interface(s), %d left in the list", program_name(s->program), n - kept, kept);
 }
 
-// ------------------------------------------------------------------ request handling
-
 typedef struct {
     const void *addr;
     size_t size;
@@ -533,6 +537,41 @@ typedef struct {
     bufref a[4], b[4], x[4];
     u32 na, nb, nx, nc;
 } reqbufs;
+
+// The remote: hid reads IF3's interrupt endpoint itself (PostBufferAsync, then GetXferReport). Its
+// report lands in hid's own memory, which is read here like the control data (debug read), and the
+// key byte goes to remote.c. Nothing hid sees changes.
+static bool watched_ep(const msess *s, const objst *o) {
+    return M.cfg->remote && s->program == PROGRAM_HID && o->kind == OBJ_EP && is_eo_ic100(o->vid, o->pid) &&
+           (o->ep & 0x80) && o->ifnum == 3;
+}
+
+static void watch_remote(msess *s, objst *o, u32 cmd, const u8 *in, size_t in_len, const reqbufs *rb, const u8 *out,
+                         size_t out_len) {
+    if (cmd == 4 && in_len >= 16) {   // PostBufferAsync: u32 size, pad, u64 buffer, u64 id
+        memcpy(&o->post_size, in, 4);
+        memcpy(&o->post_buf, in + 8, 8);
+        return;
+    }
+    if (cmd == 8 && !o->ring_noted) {   // ShareReportRing: reports would bypass IPC
+        o->ring_noted = true;
+        log_printf("remote: hid shares a report ring for EP %02x: its reports may not be seen here", o->ep);
+        return;
+    }
+    if (cmd != 5 || !rb->nb || !rb->b[0].addr || out_len < 4 || !o->post_buf) return;
+    u32 count;
+    memcpy(&count, out, 4);
+    const UsbHsXferReport *r = rb->b[0].addr;
+    for (u32 i = 0; i < count && (i + 1) * sizeof(UsbHsXferReport) <= rb->b[0].size; i++) {
+        if (R_FAILED(r[i].res) || r[i].transferredSize < 2) continue;
+        u8 rep[8] = {0};
+        Result rc = read_client(s->pid, o->post_buf, rep, r[i].transferredSize < 8 ? r[i].transferredSize : 8);
+        log_printf("remote: hid got %02x %02x %02x on EP %02x (%s)", rep[0], rep[1], rep[2], o->ep, rc_str(rc));
+        if (R_SUCCEEDED(rc) && rep[0] == 1) remote_key(rep[1]);
+    }
+}
+
+// ------------------------------------------------------------------ request handling
 
 static void save_bufs(const HipcParsedRequest *p, reqbufs *rb) {
     memset(rb, 0, sizeof(*rb));
@@ -769,6 +808,7 @@ static bool handle_request(int i) {
     }
 
     // ---- bookkeeping on the reply
+    if (request && watched_ep(s, o)) watch_remote(s, o, cmd, in, in_len, &rb, ok ? out : NULL, ok ? out_len : 0);
     if (ok && request && o->kind == OBJ_ROOT && (cmd == 1 || cmd == 2) && rb.nb && out_len >= 4)
         hide_interfaces(s, o, (void *)rb.b[0].addr, rb.b[0].size, (u8 *)out);
     if (ok && request && o->kind == OBJ_IF && cmd == IF_CTRL_REPORT && o->ctrl_pending) {
