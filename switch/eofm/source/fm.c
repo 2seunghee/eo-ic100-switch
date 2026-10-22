@@ -38,6 +38,13 @@ void fm_close(fm_dev *d) {
     d->failures = 0;
 }
 
+// The same plug-in keeps its device number and insertion timestamp; a re-enumeration gets new ones.
+// (The interface ID is no good for this: QueryAll reports -1 for an interface someone holds, ours
+// included - v0.1.0 dropped the earphone right after taking it.)
+static bool same_instance(const fm_dev *d, const UsbHsInterface *it) {
+    return it->deviceID == d->device_id && it->timestamp == d->inserted;
+}
+
 void fm_poll_device(fm_dev *d) {
     int n = query(false);
     int k = find_if0(n);
@@ -46,18 +53,19 @@ void fm_poll_device(fm_dev *d) {
         fm_close(d);
         return;
     }
-    s32 id = g_list[k].inf.ID;
     if (d->state == FMDEV_OPEN) {
-        if (id == d->if_id && d->failures < 3) return;
-        log_file("fm: device changed or not answering (id %d -> %d, %u failures)\n", d->if_id, id, d->failures);
+        if (same_instance(d, &g_list[k]) && d->failures < 8) return;
+        log_file("fm: earphone re-enumerated or not answering (device %u -> %u, %u failures)\n", d->device_id,
+                 g_list[k].deviceID, d->failures);
         fm_close(d);
     }
-    if (d->state == FMDEV_NONE || id != d->if_id) {   // a new instance: let the plug-in settle first
+    if (d->state == FMDEV_NONE || !same_instance(d, &g_list[k])) {   // a new plug-in: let it settle first
         d->state = FMDEV_SETTLING;
-        d->if_id = id;
+        d->device_id = g_list[k].deviceID;
+        d->inserted = g_list[k].timestamp;
         d->pid = g_list[k].device_desc.idProduct;
         d->seen_ms = now_ms();
-        log_file("fm: earphone 04e8:%04x seen (IF0 id %d), waiting %d ms\n", d->pid, id, SETTLE_MS);
+        log_file("fm: earphone 04e8:%04x seen (device %u), waiting %d ms\n", d->pid, d->device_id, SETTLE_MS);
         return;
     }
     if (now_ms() - d->seen_ms < SETTLE_MS) return;
@@ -69,7 +77,7 @@ void fm_poll_device(fm_dev *d) {
         return;
     }
     Result rc = usbHsAcquireUsbIf(&d->s, &g_list[k]);
-    log_file("fm: acquire IF0 (id %d): %s\n", g_list[k].inf.ID, rc_str(rc));
+    log_file("fm: acquire IF0 (id %d, device %u): %s\n", g_list[k].inf.ID, g_list[k].deviceID, rc_str(rc));
     if (R_SUCCEEDED(rc)) {
         d->state = FMDEV_OPEN;
         d->if_id = g_list[k].inf.ID;

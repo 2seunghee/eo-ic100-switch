@@ -28,7 +28,9 @@ typedef enum { FMDEV_NONE, FMDEV_SETTLING, FMDEV_BUSY, FMDEV_OPEN } fmdev_state;
 typedef struct {
     fmdev_state state;
     u16  pid;
-    s32  if_id;          // usb:hs ID of IF0
+    s32  if_id;          // usb:hs ID of IF0 (from the available list; QueryAll reports -1 once it is held)
+    u32  device_id;      // which plug-in this is: usb:hs device number + insertion timestamp
+    u64  inserted;
     u64  seen_ms;        // when this device instance was first seen
     UsbHsClientIfSession s;
     u32  failures;       // control transfers that failed in a row
