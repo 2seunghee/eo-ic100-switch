@@ -1,0 +1,26 @@
+# devkitPro build output
+build/
+*.elf
+*.nso
+*.npdm
+*.nsp
+*.nro
+*.nacp
+*.map
+*.lst
+!switch/usbhs-logmitm/sd_extra/mitm.lst
+switch/eoprobe/tests/test_usbdesc
+switch/eoaudio/tests/test_pcm
+switch/eoaudio/tests/test_config
+switch/eoaudio/tests/test_policy
+switch/usbhs-logmitm/tests/test_host
+
+# SD-card layouts and zips made by the builds (released as GitHub release assets instead)
+*.zip
+switch/*/sd/
+switch/eoaudio/atmosphere/
+switch/eoaudio/eoaudio-v*-sd/
+# local copies of the old eoprobe/eoaudio SD folders (logs of earlier experiments)
+dumps/old_sd_backup/
+__pycache__/
+*.pyc

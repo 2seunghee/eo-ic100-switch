@@ -1,0 +1,8 @@
+# devkitPro build output (eoaudio.nsp and sd/ are the deliverables and stay)
+build/
+*.elf
+*.nso
+*.npdm
+*.map
+tests/test_pcm
+tests/test_config

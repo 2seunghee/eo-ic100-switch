@@ -1,0 +1,5 @@
+# Samsung USB C Earphone (EO-IC100) device descriptor, 18 bytes.
+# Source: same public lsusb -v dump as eo-ic100_04e8_a054_config.hex
+# bcdUSB 2.00, class 0 (per-interface), bMaxPacketSize0 64, 04e8:a054, bcdDevice 1.00,
+# iManufacturer 1 "bestechnic", iProduct 2 "Samsung USB C Earphone", iSerial 3, 1 configuration.
+12 01 00 02 00 00 00 40 e8 04 54 a0 00 01 01 02 03 01

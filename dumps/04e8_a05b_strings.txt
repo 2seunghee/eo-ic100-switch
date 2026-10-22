@@ -1,0 +1,10 @@
+﻿vid:pid      04e8_a05b
+speed        full-speed (12 Mbps)
+hub          \\?\usb#root_hub30#4&2576b667&0&0#{f18a0e88-c30c-11d0-8815-00a0c906bed8}
+port         9  address 3  driver key {36fc9e60-c465-11cf-8056-444553540000}\0015
+string[ 1]   Samsung
+string[ 2]   Samsung USB C Earphones
+string[ 3]   <serial redacted, 10 chars; use -KeepSerial>
+string[ 4]   01
+string[ 5]   Audio
+string[ 6]   Headset

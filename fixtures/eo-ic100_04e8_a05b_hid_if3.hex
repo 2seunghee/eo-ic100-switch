@@ -1,0 +1,5 @@
+# EO-IC100 04e8:a05b IF3 HID report descriptor (47 bytes), read on the Switch by eoprobe (2026-10-20).
+# Consumer Control, report ID 1: Volume Increment / Volume Decrement / Play-Pause bits.
+05 0c 09 01 a1 01 85 01 15 00 25 01 75 01 95 01
+05 0c 09 e9 81 02 09 ea 81 02 09 cd 81 02 95 06
+81 01 95 01 81 01 95 04 81 01 95 02 81 01 c0

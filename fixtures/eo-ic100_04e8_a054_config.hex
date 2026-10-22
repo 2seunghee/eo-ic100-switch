@@ -1,0 +1,51 @@
+# Samsung USB C Earphone (EO-IC100), VID:PID 04e8:a054, iManufacturer "bestechnic"
+# Configuration descriptor, 305 bytes (wTotalLength 0x0131).
+#
+# Rebuilt byte by byte from a public `lsusb -v` dump:
+#   https://linux-hardware.org/?probe=7bc1964f22&log=lsusb   (Arch Linux, 2 probes, device 04e8:a054)
+# Not a raw capture. Replace with a real dump from pc/dump_usb_descriptors.ps1 or the Switch probe
+# once you have one. Lines starting with '#' are comments.
+
+# --- Configuration ------------------------------------------------------------
+09 02 31 01 05 01 00 a0 32                      # wTotalLength=305, 5 interfaces, bus powered + remote wakeup, 100mA
+
+# --- IF0 alt0: AudioControl (1/1/0) ----------------------------------------------
+09 04 00 00 00 01 01 00 00
+0a 24 01 00 01 4e 00 02 01 02                   # AC HEADER bcdADC=1.00 wTotalLength=78 bInCollection=2 baInterfaceNr={1,2}
+0c 24 02 01 01 01 00 02 03 00 00 00             # INPUT_TERMINAL  id1 USB Streaming(0x0101) 2ch L/R   <- host playback stream
+0d 24 06 02 01 02 03 00 00 00 00 00 06          # FEATURE_UNIT    id2 src1 master: mute+volume, iFeature=6 "Headset"
+09 24 03 03 02 04 00 02 00                      # OUTPUT_TERMINAL id3 Headset(0x0402) src2           <- earpieces
+0c 24 02 04 02 04 00 02 03 00 00 00             # INPUT_TERMINAL  id4 Headset(0x0402) 2ch L/R         <- microphone
+0d 24 06 05 04 02 03 00 00 00 00 00 06          # FEATURE_UNIT    id5 src4 master: mute+volume
+09 24 03 06 01 01 00 05 00                      # OUTPUT_TERMINAL id6 USB Streaming(0x0101) src5     <- host capture stream
+
+# --- IF1: AudioStreaming, CAPTURE (mic) -------------------------------------------
+09 04 01 00 00 01 02 00 00                      # alt0 zero bandwidth
+09 04 01 01 01 01 02 00 00                      # alt1
+07 24 01 06 00 01 00                            # AS_GENERAL bTerminalLink=6 (USB-streaming OT -> capture) PCM
+0b 24 02 01 02 02 10 01 80 bb 00                # FORMAT_TYPE_I 2ch 2B/16bit, 1 rate: 48000
+09 05 83 0d c0 00 01 00 00                      # EP 0x83 IN, isochronous, synchronous, 192 bytes, bInterval 1
+07 25 01 01 00 00 00                            # CS EP_GENERAL: sampling frequency control
+
+# --- IF2: AudioStreaming, PLAYBACK ------------------------------------------------
+09 04 02 00 00 01 02 00 00                      # alt0 zero bandwidth
+09 04 02 01 01 01 02 00 00                      # alt1
+07 24 01 01 00 01 00                            # AS_GENERAL bTerminalLink=1 (USB-streaming IT -> playback) PCM
+11 24 02 01 02 02 10 03 44 ac 00 80 bb 00 00 77 01   # FORMAT_TYPE_I 2ch 16bit, 3 rates: 44100 48000 96000
+09 05 03 0d 80 01 01 00 00                      # EP 0x03 OUT, isochronous, synchronous, 384 bytes, bInterval 1
+07 25 01 01 00 00 00                            # CS EP_GENERAL: sampling frequency control
+09 04 02 02 01 01 02 00 00                      # alt2
+07 24 01 01 00 01 00                            # AS_GENERAL bTerminalLink=1 PCM
+11 24 02 01 02 03 18 03 44 ac 00 80 bb 00 00 77 01   # FORMAT_TYPE_I 2ch 3B/24bit, 3 rates
+09 05 03 0d 40 02 01 00 00                      # EP 0x03 OUT, isochronous, synchronous, 576 bytes
+07 25 01 01 00 00 00
+
+# --- IF3: HID (buttons / volume) --------------------------------------------------
+09 04 03 00 01 03 00 00 00
+09 21 11 01 00 01 22 4d 00                      # HID 1.11, report descriptor 77 bytes
+07 05 84 03 03 00 01                            # EP 0x84 IN interrupt, 3 bytes, bInterval 1
+
+# --- IF4: HID (vendor: FM radio notifications, see kjy00302/eo-ic100_radio) ----------
+09 04 04 00 01 03 00 00 00
+09 21 11 01 00 01 22 14 00                      # HID 1.11, report descriptor 20 bytes
+07 05 85 03 05 00 01                            # EP 0x85 IN interrupt, 5 bytes, bInterval 1

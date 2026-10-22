@@ -1,0 +1,596 @@
+===== usbhs-logmitm 0.1.0  started 2026-10-22 09:29:46  (15.320 s after boot) =====
+(lines stamped +sssss.mmm are seconds since boot, logged before the clock was read)
++00015.142 usbhs-logmitm 0.1.0: HOS 22.1.0, SD OK
++00015.144 mitm: InstallMitm(usb:hs): OK
++00015.144 mitm: sm asks (cmd 0) about usb:hs hid (pid 100, flags 0x2): leave, reply OK
++00015.144 mitm: ClearFutureMitm(usb:hs): OK
+09:29:46.023 config: enabled=1 services=usb:hs programs=homebrew 0100000000000014 read_ctrl_data=1 sync=1 hot_detail=40 buf_dump=64 log_keep=20
+09:29:46.023 1 of 1 service(s) intercepted. Log: sdmc:/switch/usbhs-logmitm/logs/usbhslog_20261022_092946.txt
+09:29:46.249 mitm: sm asks (cmd 0) about usb:hs 0100000000000046 (pid 105, flags 0x2): leave, reply OK
+09:29:46.641 mitm: sm asks (cmd 0) about usb:hs hid (pid 100, flags 0x2): leave, reply OK
+09:29:47.344 mitm: sm asks (cmd 0) about usb:hs audio (pid 101, flags 0x2): INTERCEPT, reply OK
+09:29:47.847 mitm: audio (pid 101) connected to usb:hs: session S1
+09:29:48.351 S1 audio usb:hs: control #3 QueryPointerBufferSize
+09:29:48.856   -> OK out [00100000 00000000 00000000 ]
+09:29:48.856 S1 audio usb:hs: control #0 ConvertCurrentObjectToDomain
+09:29:49.360   -> OK out [04000000 00000000 00000000 ]
+09:29:49.360    S1 audio obj4 usb:hs is a domain now (object 4)
+09:29:49.360 S1 audio obj4 usb:hs #0 BindClientProcess: in []
+09:29:49.864   -> OK out [00000000 00000000 ]
+09:29:49.864 S1 audio obj4 usb:hs #6 GetInterfaceStateChangeEvent: in []
+09:29:50.368   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+09:29:50.368 S1 audio obj4 usb:hs #4 CreateInterfaceAvailableEvent: in [00008000 00000000 00000000 00000001 0000]
+09:29:50.872   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+09:30:07.302 S1 audio obj4 usb:hs #2 QueryAvailableInterfaces: in [80000000 00000000 00000000 00010000 ] B+0x1140
+09:30:07.315   -> OK out [00000000 00000000 00000000 ]
+09:30:07.315 S1 audio obj4 usb:hs #5 DestroyInterfaceAvailableEvent: in [00]
+09:30:07.321   -> OK out [00000000 00000000 ]
+09:30:07.321 S1 audio obj4 usb:hs: domain object 4 closed
+09:30:07.325 S1 audio obj4 usb:hs: session closed (client closed it), 0 left
+13:08:35.098 status: 4 sm queries, 1 client(s) intercepted (1 from audio), 0 session(s) open, 8 requests, 0 forward failures, 0 memory reads failed
+13:10:05.384 status: 4 sm queries, 1 client(s) intercepted (1 from audio), 0 session(s) open, 8 requests, 0 forward failures, 0 memory reads failed
+13:10:06.019 mitm: sm asks (cmd 0) about usb:hs audio (pid 101, flags 0x2): INTERCEPT, reply OK
+13:10:06.037 mitm: audio (pid 101) connected to usb:hs: session S2
+13:10:06.041 S2 audio usb:hs: control #3 QueryPointerBufferSize
+13:10:06.047   -> OK out [00100000 00000000 00000000 ]
+13:10:06.047 S2 audio usb:hs: control #0 ConvertCurrentObjectToDomain
+13:10:06.051   -> OK out [04000000 00000000 00000000 ]
+13:10:06.051    S2 audio obj4 usb:hs is a domain now (object 4)
+13:10:06.051 S2 audio obj4 usb:hs #0 BindClientProcess: in []
+13:10:06.055   -> OK out [00000000 00000000 ]
+13:10:06.055 S2 audio obj4 usb:hs #6 GetInterfaceStateChangeEvent: in []
+13:10:06.059   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:06.059 S2 audio obj4 usb:hs #4 CreateInterfaceAvailableEvent: in [00008000 00000000 00000000 00000001 0000]
+13:10:06.065   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:06.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:07.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:08.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:09.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:10.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:11.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:12.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:13.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:14.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:15.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:16.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:17.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:18.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:19.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:20.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:21.386 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:22.387 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:23.387 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:24.387 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:25.387 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:26.387 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:27.387 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 memory reads failed
+13:10:28.151 S2 audio obj4 usb:hs #2 QueryAvailableInterfaces: in [80000000 00000000 00000000 00010000 ] B+0x1140
+13:10:28.166   -> OK out [03000000 00000000 00000000 ]
+13:10:28.166      id 1342242816 dev2 3 unk 0x1: if 0 alt 0 eps 0 class 01/01/00
+13:10:28.166        dev 04e8:a05b bcd 0100 bus 2 dev 3 cfg total 345 ifs 5, ts 13257472278385, path FsDevice3-/T2/P1/A01
+13:10:28.166      id 1342308353 dev2 3 unk 0x2: if 1 alt 0 eps 0 class 01/02/00
+13:10:28.166        dev 04e8:a05b bcd 0100 bus 2 dev 3 cfg total 345 ifs 5, ts 13257472278385, path FsDevice3-/T2/P1/A01
+13:10:28.166      id 1342373890 dev2 3 unk 0x4: if 2 alt 0 eps 0 class 01/02/00
+13:10:28.166        dev 04e8:a05b bcd 0100 bus 2 dev 3 cfg total 345 ifs 5, ts 13257472278385, path FsDevice3-/T2/P1/A01
+13:10:28.166 S2 audio obj4 usb:hs #7 AcquireUsbIf: in [00000150 ] B+0x70 B+0x1b8
+13:10:28.170   -> OK
+13:10:28.170      0000: 4673446576696365 332d2f54322f5031 2f41303100000000 0000000000000000 
+13:10:28.170      0020: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 
+13:10:28.170      id 1342242816 dev2 3 unk 0x1: if 0 alt 0 eps 0 class 01/01/00
+13:10:28.170    new S2 audio obj9 IF[id 1342242816 if 0]
+13:10:28.170 S2 audio obj9 IF[id 1342242816 if 0] #0 GetStateChangeEvent: in []
+13:10:28.174   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:28.174 S2 audio obj9 IF[id 1342242816 if 0] #6 GetCtrlXferCompletionEvent: in []
+13:10:28.181   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:28.181 S2 audio obj9 IF[id 1342242816 if 0] #5 CtrlXferAsync: IN  std    dev GET_DESCRIPTOR CONFIG idx 0 lang/if 0x0 len 345  [80 06 0200 0000 0159] buf 0x14ee6f000
+13:10:28.186   -> OK out [00000000 00000000 ]
+13:10:28.186 S2 audio obj9 IF[id 1342242816 if 0] #7 GetCtrlXferReport: in [] B+0x18
+13:10:28.191   -> OK out [00000000 00000000 ]
+13:10:28.191      IN data (345 bytes):
+13:10:28.191        0000: 09025901050100a0 3209040000000101 00000a240100014e 000201020c240201 
+13:10:28.191        0020: 0204060203000000 0d24060201020300 0000000006092403 0301010002000c24 
+13:10:28.191        0040: 0204010100020300 00000d2406050402 0300000000000609 2403060204010500 
+13:10:28.191        0060: 0904010000010200 0009040101010102 0000072401030001 000b240201020210 
+13:10:28.191        0080: 0180bb000905830d c000010000072501 0100000009040200 0001020000090402 
+13:10:28.191        00a0: 0101010200000724 01040001000e2402 010202100280bb00 0077010905030d80 
+13:10:28.191        00c0: 0101000007250101 0000000904020201 0102000007240104 0001000e24020102 
+13:10:28.191        00e0: 03180280bb000077 010905030d400201 0000072501010000 0009040203010102 
+13:10:28.192        0100: 0000072401040001 000e240201020420 0280bb0000770109 05030d0003010000 
+13:10:28.192        0120: 0725010100000009 0403000103000000 092111010001222f 0007058403030004 
+13:10:28.192        0140: 0904040001030000 0009211101000122 1400070585030500 04
+13:10:28.192        @000 CONFIG total 345 ifs 5 value 1 attr 0xa0 power 100 mA
+13:10:28.192        @009 INTERFACE if 0 alt 0 eps 0 class 01/01/00
+13:10:28.192        @018 CS_INTERFACE len 10
+13:10:28.192        @028 CS_INTERFACE len 12
+13:10:28.192        @040 CS_INTERFACE len 13
+13:10:28.192        @053 CS_INTERFACE len 9
+13:10:28.192        @062 CS_INTERFACE len 12
+13:10:28.192        @074 CS_INTERFACE len 13
+13:10:28.192        @087 CS_INTERFACE len 9
+13:10:28.192        @096 INTERFACE if 1 alt 0 eps 0 class 01/02/00
+13:10:28.192        @105 INTERFACE if 1 alt 1 eps 1 class 01/02/00
+13:10:28.192        @114 CS_INTERFACE len 7
+13:10:28.192        @121 CS_INTERFACE len 11
+13:10:28.192        @132 ENDPOINT 0x83 attr 0x0d mps 192 interval 1
+13:10:28.192        @141 CS_ENDPOINT len 7
+13:10:28.192        @148 INTERFACE if 2 alt 0 eps 0 class 01/02/00
+13:10:28.192        @157 INTERFACE if 2 alt 1 eps 1 class 01/02/00
+13:10:28.192        @166 CS_INTERFACE len 7
+13:10:28.192        @173 CS_INTERFACE len 14
+13:10:28.192        @187 ENDPOINT 0x03 attr 0x0d mps 384 interval 1
+13:10:28.192        @196 CS_ENDPOINT len 7
+13:10:28.192        @203 INTERFACE if 2 alt 2 eps 1 class 01/02/00
+13:10:28.192        @212 CS_INTERFACE len 7
+13:10:28.192        @219 CS_INTERFACE len 14
+13:10:28.192        @233 ENDPOINT 0x03 attr 0x0d mps 576 interval 1
+13:10:28.192        @242 CS_ENDPOINT len 7
+13:10:28.192        @249 INTERFACE if 2 alt 3 eps 1 class 01/02/00
+13:10:28.192        @258 CS_INTERFACE len 7
+13:10:28.192        @265 CS_INTERFACE len 14
+13:10:28.192        @279 ENDPOINT 0x03 attr 0x0d mps 768 interval 1
+13:10:28.192        @288 CS_ENDPOINT len 7
+13:10:28.192        @295 INTERFACE if 3 alt 0 eps 1 class 03/00/00
+13:10:28.192        @304 HID len 9
+13:10:28.192        @313 ENDPOINT 0x84 attr 0x03 mps 3 interval 4
+13:10:28.192        @320 INTERFACE if 4 alt 0 eps 1 class 03/00/00
+13:10:28.192        @329 HID len 9
+13:10:28.192        @338 ENDPOINT 0x85 attr 0x03 mps 5 interval 4
+13:10:28.192 S2 audio obj9 IF[id 1342242816 if 0]: domain object 9 closed
+13:10:28.200 S2 audio obj4 usb:hs #7 AcquireUsbIf: in [01000250 ] B+0x70 B+0x1b8
+13:10:28.206   -> OK
+13:10:28.206      0000: 4673446576696365 332d2f54322f5031 2f41303100000000 0000000000000000 
+13:10:28.206      0020: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 
+13:10:28.206      id 1342308353 dev2 3 unk 0x2: if 1 alt 0 eps 0 class 01/02/00
+13:10:28.206    new S2 audio obj9 IF[id 1342308353 if 1]
+13:10:28.206 S2 audio obj9 IF[id 1342308353 if 1] #0 GetStateChangeEvent: in []
+13:10:28.210   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:28.210 S2 audio obj9 IF[id 1342308353 if 1] #6 GetCtrlXferCompletionEvent: in []
+13:10:28.215   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:28.215 S2 audio obj9 IF[id 1342308353 if 1] #5 CtrlXferAsync: IN  std    dev GET_DESCRIPTOR CONFIG idx 0 lang/if 0x0 len 345  [80 06 0200 0000 0159] buf 0x14ee6f000
+13:10:28.220   -> OK out [00000000 00000000 ]
+13:10:28.221 S2 audio obj9 IF[id 1342308353 if 1] #7 GetCtrlXferReport: in [] B+0x18
+13:10:28.226   -> OK out [00000000 00000000 ]
+13:10:28.226      IN data (345 bytes):
+13:10:28.226        0000: 09025901050100a0 3209040000000101 00000a240100014e 000201020c240201 
+13:10:28.226        0020: 0204060203000000 0d24060201020300 0000000006092403 0301010002000c24 
+13:10:28.226        0040: 0204010100020300 00000d2406050402 0300000000000609 2403060204010500 
+13:10:28.226        0060: 0904010000010200 0009040101010102 0000072401030001 000b240201020210 
+13:10:28.226        0080: 0180bb000905830d c000010000072501 0100000009040200 0001020000090402 
+13:10:28.226        00a0: 0101010200000724 01040001000e2402 010202100280bb00 0077010905030d80 
+13:10:28.226        00c0: 0101000007250101 0000000904020201 0102000007240104 0001000e24020102 
+13:10:28.226        00e0: 03180280bb000077 010905030d400201 0000072501010000 0009040203010102 
+13:10:28.226        0100: 0000072401040001 000e240201020420 0280bb0000770109 05030d0003010000 
+13:10:28.226        0120: 0725010100000009 0403000103000000 092111010001222f 0007058403030004 
+13:10:28.226        0140: 0904040001030000 0009211101000122 1400070585030500 04
+13:10:28.226        @000 CONFIG total 345 ifs 5 value 1 attr 0xa0 power 100 mA
+13:10:28.226        @009 INTERFACE if 0 alt 0 eps 0 class 01/01/00
+13:10:28.226        @018 CS_INTERFACE len 10
+13:10:28.226        @028 CS_INTERFACE len 12
+13:10:28.226        @040 CS_INTERFACE len 13
+13:10:28.226        @053 CS_INTERFACE len 9
+13:10:28.226        @062 CS_INTERFACE len 12
+13:10:28.226        @074 CS_INTERFACE len 13
+13:10:28.226        @087 CS_INTERFACE len 9
+13:10:28.226        @096 INTERFACE if 1 alt 0 eps 0 class 01/02/00
+13:10:28.226        @105 INTERFACE if 1 alt 1 eps 1 class 01/02/00
+13:10:28.226        @114 CS_INTERFACE len 7
+13:10:28.226        @121 CS_INTERFACE len 11
+13:10:28.226        @132 ENDPOINT 0x83 attr 0x0d mps 192 interval 1
+13:10:28.226        @141 CS_ENDPOINT len 7
+13:10:28.226        @148 INTERFACE if 2 alt 0 eps 0 class 01/02/00
+13:10:28.226        @157 INTERFACE if 2 alt 1 eps 1 class 01/02/00
+13:10:28.226        @166 CS_INTERFACE len 7
+13:10:28.226        @173 CS_INTERFACE len 14
+13:10:28.226        @187 ENDPOINT 0x03 attr 0x0d mps 384 interval 1
+13:10:28.226        @196 CS_ENDPOINT len 7
+13:10:28.226        @203 INTERFACE if 2 alt 2 eps 1 class 01/02/00
+13:10:28.226        @212 CS_INTERFACE len 7
+13:10:28.226        @219 CS_INTERFACE len 14
+13:10:28.226        @233 ENDPOINT 0x03 attr 0x0d mps 576 interval 1
+13:10:28.226        @242 CS_ENDPOINT len 7
+13:10:28.226        @249 INTERFACE if 2 alt 3 eps 1 class 01/02/00
+13:10:28.226        @258 CS_INTERFACE len 7
+13:10:28.226        @265 CS_INTERFACE len 14
+13:10:28.226        @279 ENDPOINT 0x03 attr 0x0d mps 768 interval 1
+13:10:28.226        @288 CS_ENDPOINT len 7
+13:10:28.226        @295 INTERFACE if 3 alt 0 eps 1 class 03/00/00
+13:10:28.226        @304 HID len 9
+13:10:28.226        @313 ENDPOINT 0x84 attr 0x03 mps 3 interval 4
+13:10:28.226        @320 INTERFACE if 4 alt 0 eps 1 class 03/00/00
+13:10:28.226        @329 HID len 9
+13:10:28.226        @338 ENDPOINT 0x85 attr 0x03 mps 5 interval 4
+13:10:28.226 S2 audio obj9 IF[id 1342308353 if 1]: domain object 9 closed
+13:10:28.234 S2 audio obj4 usb:hs #7 AcquireUsbIf: in [01000250 ] B+0x70 B+0x1b8
+13:10:28.239   -> OK
+13:10:28.239      0000: 4673446576696365 332d2f54322f5031 2f41303100000000 0000000000000000 
+13:10:28.239      0020: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 
+13:10:28.239      id 1342308353 dev2 3 unk 0x2: if 1 alt 0 eps 0 class 01/02/00
+13:10:28.239    new S2 audio obj9 IF[id 1342308353 if 1]
+13:10:28.239 S2 audio obj9 IF[id 1342308353 if 1] #0 GetStateChangeEvent: in []
+13:10:28.245   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:28.245 S2 audio obj9 IF[id 1342308353 if 1] #6 GetCtrlXferCompletionEvent: in []
+13:10:28.250   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:28.250 S2 audio obj9 IF[id 1342308353 if 1] #1 SetInterface: in [00] B+0x1b8
+13:10:28.256   -> OK out [00000000 00000000 ]
+13:10:28.256      id 0 dev2 3 unk 0x2: if 1 alt 0 eps 0 class 01/02/00
+13:10:28.256 S2 audio obj4 usb:hs #7 AcquireUsbIf: in [02000350 ] B+0x70 B+0x1b8
+13:10:28.260   -> OK
+13:10:28.260      0000: 4673446576696365 332d2f54322f5031 2f41303100000000 0000000000000000 
+13:10:28.260      0020: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 
+13:10:28.260      id 1342373890 dev2 3 unk 0x4: if 2 alt 0 eps 0 class 01/02/00
+13:10:28.260    new S2 audio obj10 IF[id 1342373890 if 2]
+13:10:28.260 S2 audio obj10 IF[id 1342373890 if 2] #0 GetStateChangeEvent: in []
+13:10:28.264   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:28.264 S2 audio obj10 IF[id 1342373890 if 2] #6 GetCtrlXferCompletionEvent: in []
+13:10:28.268   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:28.269 S2 audio obj10 IF[id 1342373890 if 2] #5 CtrlXferAsync: IN  std    dev GET_DESCRIPTOR CONFIG idx 0 lang/if 0x0 len 345  [80 06 0200 0000 0159] buf 0x14ee6f000
+13:10:28.274   -> OK out [00000000 00000000 ]
+13:10:28.274 S2 audio obj10 IF[id 1342373890 if 2] #7 GetCtrlXferReport: in [] B+0x18
+13:10:28.278   -> OK out [00000000 00000000 ]
+13:10:28.278      IN data (345 bytes):
+13:10:28.278        0000: 09025901050100a0 3209040000000101 00000a240100014e 000201020c240201 
+13:10:28.278        0020: 0204060203000000 0d24060201020300 0000000006092403 0301010002000c24 
+13:10:28.278        0040: 0204010100020300 00000d2406050402 0300000000000609 2403060204010500 
+13:10:28.278        0060: 0904010000010200 0009040101010102 0000072401030001 000b240201020210 
+13:10:28.278        0080: 0180bb000905830d c000010000072501 0100000009040200 0001020000090402 
+13:10:28.278        00a0: 0101010200000724 01040001000e2402 010202100280bb00 0077010905030d80 
+13:10:28.278        00c0: 0101000007250101 0000000904020201 0102000007240104 0001000e24020102 
+13:10:28.278        00e0: 03180280bb000077 010905030d400201 0000072501010000 0009040203010102 
+13:10:28.278        0100: 0000072401040001 000e240201020420 0280bb0000770109 05030d0003010000 
+13:10:28.278        0120: 0725010100000009 0403000103000000 092111010001222f 0007058403030004 
+13:10:28.278        0140: 0904040001030000 0009211101000122 1400070585030500 04
+13:10:28.278        @000 CONFIG total 345 ifs 5 value 1 attr 0xa0 power 100 mA
+13:10:28.278        @009 INTERFACE if 0 alt 0 eps 0 class 01/01/00
+13:10:28.278        @018 CS_INTERFACE len 10
+13:10:28.278        @028 CS_INTERFACE len 12
+13:10:28.278        @040 CS_INTERFACE len 13
+13:10:28.278        @053 CS_INTERFACE len 9
+13:10:28.278        @062 CS_INTERFACE len 12
+13:10:28.278        @074 CS_INTERFACE len 13
+13:10:28.278        @087 CS_INTERFACE len 9
+13:10:28.278        @096 INTERFACE if 1 alt 0 eps 0 class 01/02/00
+13:10:28.278        @105 INTERFACE if 1 alt 1 eps 1 class 01/02/00
+13:10:28.278        @114 CS_INTERFACE len 7
+13:10:28.278        @121 CS_INTERFACE len 11
+13:10:28.278        @132 ENDPOINT 0x83 attr 0x0d mps 192 interval 1
+13:10:28.278        @141 CS_ENDPOINT len 7
+13:10:28.278        @148 INTERFACE if 2 alt 0 eps 0 class 01/02/00
+13:10:28.278        @157 INTERFACE if 2 alt 1 eps 1 class 01/02/00
+13:10:28.278        @166 CS_INTERFACE len 7
+13:10:28.278        @173 CS_INTERFACE len 14
+13:10:28.278        @187 ENDPOINT 0x03 attr 0x0d mps 384 interval 1
+13:10:28.278        @196 CS_ENDPOINT len 7
+13:10:28.278        @203 INTERFACE if 2 alt 2 eps 1 class 01/02/00
+13:10:28.278        @212 CS_INTERFACE len 7
+13:10:28.278        @219 CS_INTERFACE len 14
+13:10:28.278        @233 ENDPOINT 0x03 attr 0x0d mps 576 interval 1
+13:10:28.278        @242 CS_ENDPOINT len 7
+13:10:28.278        @249 INTERFACE if 2 alt 3 eps 1 class 01/02/00
+13:10:28.278        @258 CS_INTERFACE len 7
+13:10:28.278        @265 CS_INTERFACE len 14
+13:10:28.278        @279 ENDPOINT 0x03 attr 0x0d mps 768 interval 1
+13:10:28.278        @288 CS_ENDPOINT len 7
+13:10:28.278        @295 INTERFACE if 3 alt 0 eps 1 class 03/00/00
+13:10:28.278        @304 HID len 9
+13:10:28.278        @313 ENDPOINT 0x84 attr 0x03 mps 3 interval 4
+13:10:28.278        @320 INTERFACE if 4 alt 0 eps 1 class 03/00/00
+13:10:28.278        @329 HID len 9
+13:10:28.278        @338 ENDPOINT 0x85 attr 0x03 mps 5 interval 4
+13:10:28.278 S2 audio obj10 IF[id 1342373890 if 2]: domain object 10 closed
+13:10:28.288 S2 audio obj4 usb:hs #7 AcquireUsbIf: in [02000350 ] B+0x70 B+0x1b8
+13:10:28.293   -> OK
+13:10:28.293      0000: 4673446576696365 332d2f54322f5031 2f41303100000000 0000000000000000 
+13:10:28.293      0020: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 
+13:10:28.293      id 1342373890 dev2 3 unk 0x4: if 2 alt 0 eps 0 class 01/02/00
+13:10:28.293    new S2 audio obj10 IF[id 1342373890 if 2]
+13:10:28.293 S2 audio obj10 IF[id 1342373890 if 2] #0 GetStateChangeEvent: in []
+13:10:28.301   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:28.301 S2 audio obj10 IF[id 1342373890 if 2] #6 GetCtrlXferCompletionEvent: in []
+13:10:28.306   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:28.307 S2 audio obj10 IF[id 1342373890 if 2] #1 SetInterface: in [00] B+0x1b8
+13:10:28.313   -> OK out [00000000 00000000 ]
+13:10:28.313      id 0 dev2 3 unk 0x4: if 2 alt 0 eps 0 class 01/02/00
+13:10:28.387 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 40 requests, 0 forward failures, 0 memory reads failed
+13:10:29.387 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 40 requests, 0 forward failures, 0 memory reads failed
+13:10:30.387 status: 5 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 40 requests, 0 forward failures, 0 memory reads failed
+13:10:31.095 mitm: sm asks (cmd 0) about usb:hs 010000000000100d (pid 139, flags 0x1b): INTERCEPT, reply OK
+13:10:31.152 mitm: 010000000000100d (pid 139) connected to usb:hs: session S3
+13:10:31.157 S3 010000000000100d usb:hs: control #3 QueryPointerBufferSize
+13:10:31.161   -> OK out [00100000 00000000 00000000 ]
+13:10:31.161 S3 010000000000100d usb:hs: control #0 ConvertCurrentObjectToDomain
+13:10:31.165   -> OK out [0b000000 00000000 00000000 ]
+13:10:31.165    S3 010000000000100d obj11 usb:hs is a domain now (object 11)
+13:10:31.165 S3 010000000000100d obj11 usb:hs #0 BindClientProcess: in []
+13:10:31.170   -> OK out [00000000 00000000 ]
+13:10:31.170 S3 010000000000100d obj11 usb:hs #6 GetInterfaceStateChangeEvent: in []
+13:10:31.174   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:31.174 S3 010000000000100d obj11 usb:hs #4 CreateInterfaceAvailableEvent: in [01008001 00000000 00000000 00000008 0600]
+13:10:31.180   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:31.180 S3 010000000000100d obj11 usb:hs #4 CreateInterfaceAvailableEvent: in [00008001 00000000 00000000 00000008 0200]
+13:10:31.308   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:31.387 status: 6 sm queries, 3 client(s) intercepted (2 from audio), 2 session(s) open, 46 requests, 0 forward failures, 0 memory reads failed
+13:10:32.308 S3 010000000000100d obj11 usb:hs #2 QueryAvailableInterfaces: in [80010000 00000000 00000000 00080200 ] B+0x1140
+13:10:32.318   -> OK out [00000000 00000000 00000000 ]
+13:10:32.387 status: 6 sm queries, 3 client(s) intercepted (2 from audio), 2 session(s) open, 47 requests, 0 forward failures, 0 memory reads failed
+13:10:33.387 status: 6 sm queries, 3 client(s) intercepted (2 from audio), 2 session(s) open, 47 requests, 0 forward failures, 0 memory reads failed
+13:10:34.387 status: 6 sm queries, 3 client(s) intercepted (2 from audio), 2 session(s) open, 47 requests, 0 forward failures, 0 memory reads failed
+13:10:35.387 status: 6 sm queries, 3 client(s) intercepted (2 from audio), 2 session(s) open, 47 requests, 0 forward failures, 0 memory reads failed
+13:10:36.387 status: 6 sm queries, 3 client(s) intercepted (2 from audio), 2 session(s) open, 47 requests, 0 forward failures, 0 memory reads failed
+13:10:37.387 status: 6 sm queries, 3 client(s) intercepted (2 from audio), 2 session(s) open, 47 requests, 0 forward failures, 0 memory reads failed
+13:10:37.978 S3 010000000000100d obj11 usb:hs #5 DestroyInterfaceAvailableEvent: in [00]
+13:10:38.009   -> OK out [00000000 00000000 ]
+13:10:38.009 S3 010000000000100d obj11 usb:hs #5 DestroyInterfaceAvailableEvent: in [01]
+13:10:38.014   -> OK out [00000000 00000000 ]
+13:10:38.014 S3 010000000000100d obj11 usb:hs: session closed (client closed it), 1 left
+13:10:38.387 status: 6 sm queries, 3 client(s) intercepted (2 from audio), 1 session(s) open, 49 requests, 0 forward failures, 0 memory reads failed
+13:10:39.387 status: 6 sm queries, 3 client(s) intercepted (2 from audio), 1 session(s) open, 49 requests, 0 forward failures, 0 memory reads failed
+13:10:40.387 status: 6 sm queries, 3 client(s) intercepted (2 from audio), 1 session(s) open, 49 requests, 0 forward failures, 0 memory reads failed
+13:10:40.674 mitm: sm asks (cmd 0) about usb:hs 010000000000100d (pid 140, flags 0x1b): INTERCEPT, reply OK
+13:10:40.687 mitm: 010000000000100d (pid 140) connected to usb:hs: session S4
+13:10:40.734 S4 010000000000100d usb:hs: control #3 QueryPointerBufferSize
+13:10:40.739   -> OK out [00100000 00000000 00000000 ]
+13:10:40.739 S4 010000000000100d usb:hs: control #0 ConvertCurrentObjectToDomain
+13:10:40.744   -> OK out [0b000000 00000000 00000000 ]
+13:10:40.744    S4 010000000000100d obj11 usb:hs is a domain now (object 11)
+13:10:40.744 S4 010000000000100d obj11 usb:hs #0 BindClientProcess: in []
+13:10:40.749   -> OK out [00000000 00000000 ]
+13:10:40.749 S4 010000000000100d obj11 usb:hs #6 GetInterfaceStateChangeEvent: in []
+13:10:40.754   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:40.754 S4 010000000000100d obj11 usb:hs #4 CreateInterfaceAvailableEvent: in [01008001 00000000 00000000 00000008 0600]
+13:10:40.758   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:40.758 S4 010000000000100d obj11 usb:hs #4 CreateInterfaceAvailableEvent: in [00008001 00000000 00000000 00000008 0200]
+13:10:40.876   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:10:41.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 55 requests, 0 forward failures, 0 memory reads failed
+13:10:41.876 S4 010000000000100d obj11 usb:hs #2 QueryAvailableInterfaces: in [80010000 00000000 00000000 00080200 ] B+0x1140
+13:10:41.886   -> OK out [00000000 00000000 00000000 ]
+13:10:42.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 56 requests, 0 forward failures, 0 memory reads failed
+13:10:43.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 56 requests, 0 forward failures, 0 memory reads failed
+13:10:44.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 56 requests, 0 forward failures, 0 memory reads failed
+13:10:45.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 56 requests, 0 forward failures, 0 memory reads failed
+13:10:46.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 56 requests, 0 forward failures, 0 memory reads failed
+13:10:47.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 56 requests, 0 forward failures, 0 memory reads failed
+13:10:48.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 56 requests, 0 forward failures, 0 memory reads failed
+13:10:49.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 56 requests, 0 forward failures, 0 memory reads failed
+13:10:50.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 56 requests, 0 forward failures, 0 memory reads failed
+13:10:51.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 56 requests, 0 forward failures, 0 memory reads failed
+13:10:52.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 56 requests, 0 forward failures, 0 memory reads failed
+13:10:53.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 2 session(s) open, 56 requests, 0 forward failures, 0 memory reads failed
+13:10:53.811 S4 010000000000100d obj11 usb:hs #5 DestroyInterfaceAvailableEvent: in [00]
+13:10:53.835   -> OK out [00000000 00000000 ]
+13:10:53.836 S4 010000000000100d obj11 usb:hs #5 DestroyInterfaceAvailableEvent: in [01]
+13:10:53.842   -> OK out [00000000 00000000 ]
+13:10:53.842 S4 010000000000100d obj11 usb:hs: session closed (client closed it), 1 left
+13:10:54.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:10:55.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:10:56.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:10:57.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:10:58.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:10:59.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:00.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:01.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:02.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:03.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:04.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:05.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:06.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:07.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:08.387 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:09.388 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:10.388 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:11.388 status: 7 sm queries, 4 client(s) intercepted (2 from audio), 1 session(s) open, 58 requests, 0 forward failures, 0 memory reads failed
+13:11:11.913 mitm: sm asks (cmd 0) about usb:hs 010000000000100d (pid 140, flags 0x1b): INTERCEPT, reply OK
+13:11:12.009 mitm: 010000000000100d (pid 140) connected to usb:hs: session S5
+13:11:12.014 S5 010000000000100d usb:hs: control #3 QueryPointerBufferSize
+13:11:12.018   -> OK out [00100000 00000000 00000000 ]
+13:11:12.018 S5 010000000000100d usb:hs: control #0 ConvertCurrentObjectToDomain
+13:11:12.022   -> OK out [0b000000 00000000 00000000 ]
+13:11:12.022    S5 010000000000100d obj11 usb:hs is a domain now (object 11)
+13:11:12.022 S5 010000000000100d obj11 usb:hs #0 BindClientProcess: in []
+13:11:12.026   -> OK out [00000000 00000000 ]
+13:11:12.026 S5 010000000000100d obj11 usb:hs #6 GetInterfaceStateChangeEvent: in []
+13:11:12.030   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:11:12.030 S5 010000000000100d obj11 usb:hs #4 CreateInterfaceAvailableEvent: in [01008001 00000000 00000000 00000008 0600]
+13:11:12.039   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:11:12.039 S5 010000000000100d obj11 usb:hs #4 CreateInterfaceAvailableEvent: in [00008001 00000000 00000000 00000008 0200]
+13:11:12.214   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:11:12.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 64 requests, 0 forward failures, 0 memory reads failed
+13:11:13.214 S5 010000000000100d obj11 usb:hs #2 QueryAvailableInterfaces: in [80010000 00000000 00000000 00080200 ] B+0x1140
+13:11:13.224   -> OK out [00000000 00000000 00000000 ]
+13:11:13.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:14.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:15.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:16.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:17.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:18.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:19.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:20.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:21.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:22.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:23.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:24.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:25.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:26.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 2 session(s) open, 65 requests, 0 forward failures, 0 memory reads failed
+13:11:26.445 S5 010000000000100d obj11 usb:hs #5 DestroyInterfaceAvailableEvent: in [00]
+13:11:26.484   -> OK out [00000000 00000000 ]
+13:11:26.484 S5 010000000000100d obj11 usb:hs #5 DestroyInterfaceAvailableEvent: in [01]
+13:11:26.488   -> OK out [00000000 00000000 ]
+13:11:26.488 S5 010000000000100d obj11 usb:hs: session closed (client closed it), 1 left
+13:11:27.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 1 session(s) open, 67 requests, 0 forward failures, 0 memory reads failed
+13:11:28.064 S2 audio obj9 IF[id 1342308353 if 1]: domain object 9 closed
+13:11:28.074 S2 audio obj10 IF[id 1342373890 if 2]: domain object 10 closed
+13:11:28.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 1 session(s) open, 69 requests, 0 forward failures, 0 memory reads failed
+13:11:29.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 1 session(s) open, 69 requests, 0 forward failures, 0 memory reads failed
+13:11:30.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 1 session(s) open, 69 requests, 0 forward failures, 0 memory reads failed
+13:11:31.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 1 session(s) open, 69 requests, 0 forward failures, 0 memory reads failed
+13:11:32.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 1 session(s) open, 69 requests, 0 forward failures, 0 memory reads failed
+13:11:33.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 1 session(s) open, 69 requests, 0 forward failures, 0 memory reads failed
+13:11:34.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 1 session(s) open, 69 requests, 0 forward failures, 0 memory reads failed
+13:11:35.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 1 session(s) open, 69 requests, 0 forward failures, 0 memory reads failed
+13:11:36.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 1 session(s) open, 69 requests, 0 forward failures, 0 memory reads failed
+13:11:37.388 status: 8 sm queries, 5 client(s) intercepted (2 from audio), 1 session(s) open, 69 requests, 0 forward failures, 0 memory reads failed
+13:11:38.353 mitm: sm asks (cmd 0) about usb:hs 010000000000100d (pid 142, flags 0x1b): INTERCEPT, reply OK
+13:11:38.366 mitm: 010000000000100d (pid 142) connected to usb:hs: session S6
+13:11:38.388 status: 9 sm queries, 6 client(s) intercepted (2 from audio), 2 session(s) open, 69 requests, 0 forward failures, 0 memory reads failed
+13:11:38.416 S6 010000000000100d usb:hs: control #3 QueryPointerBufferSize
+13:11:38.423   -> OK out [00100000 00000000 00000000 ]
+13:11:38.423 S6 010000000000100d usb:hs: control #0 ConvertCurrentObjectToDomain
+13:11:38.428   -> OK out [07000000 00000000 00000000 ]
+13:11:38.428    S6 010000000000100d obj7 usb:hs is a domain now (object 7)
+13:11:38.428 S6 010000000000100d obj7 usb:hs #0 BindClientProcess: in []
+13:11:38.433   -> OK out [00000000 00000000 ]
+13:11:38.433 S6 010000000000100d obj7 usb:hs #6 GetInterfaceStateChangeEvent: in []
+13:11:38.437   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:11:38.437 S6 010000000000100d obj7 usb:hs #4 CreateInterfaceAvailableEvent: in [01008001 00000000 00000000 00000008 0600]
+13:11:38.441   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:11:38.442 S6 010000000000100d obj7 usb:hs #4 CreateInterfaceAvailableEvent: in [00008001 00000000 00000000 00000008 0200]
+13:11:38.561   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:11:39.388 status: 9 sm queries, 6 client(s) intercepted (2 from audio), 2 session(s) open, 75 requests, 0 forward failures, 0 memory reads failed
+13:11:39.561 S6 010000000000100d obj7 usb:hs #2 QueryAvailableInterfaces: in [80010000 00000000 00000000 00080200 ] B+0x1140
+13:11:39.571   -> OK out [00000000 00000000 00000000 ]
+13:11:39.928 S6 010000000000100d obj7 usb:hs #5 DestroyInterfaceAvailableEvent: in [00]
+13:11:39.950   -> OK out [00000000 00000000 ]
+13:11:40.052 S6 010000000000100d obj7 usb:hs #5 DestroyInterfaceAvailableEvent: in [01]
+13:11:40.062   -> OK out [00000000 00000000 ]
+13:11:40.062 S6 010000000000100d obj7 usb:hs: session closed (client closed it), 1 left
+13:11:40.388 status: 9 sm queries, 6 client(s) intercepted (2 from audio), 1 session(s) open, 78 requests, 0 forward failures, 0 memory reads failed
+13:11:40.848 mitm: sm asks (cmd 0) about usb:hs 010000000000100d (pid 142, flags 0x1b): INTERCEPT, reply OK
+13:11:40.858 mitm: 010000000000100d (pid 142) connected to usb:hs: session S7
+13:11:40.864 S7 010000000000100d usb:hs: control #3 QueryPointerBufferSize
+13:11:40.869   -> OK out [00100000 00000000 00000000 ]
+13:11:40.869 S7 010000000000100d usb:hs: control #0 ConvertCurrentObjectToDomain
+13:11:40.873   -> OK out [07000000 00000000 00000000 ]
+13:11:40.873    S7 010000000000100d obj7 usb:hs is a domain now (object 7)
+13:11:40.873 S7 010000000000100d obj7 usb:hs #0 BindClientProcess: in []
+13:11:40.877   -> OK out [00000000 00000000 ]
+13:11:40.877 S7 010000000000100d obj7 usb:hs #6 GetInterfaceStateChangeEvent: in []
+13:11:40.882   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:11:40.882 S7 010000000000100d obj7 usb:hs #4 CreateInterfaceAvailableEvent: in [00000000 00000000 00000000 00000000 0000]
+13:11:40.886   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+13:11:41.388 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:42.388 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:43.388 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:44.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:45.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:46.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:47.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:48.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:49.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:50.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:51.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:52.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:53.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:54.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:55.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:56.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:57.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:58.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:11:59.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:00.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:01.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:02.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:03.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:04.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:05.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:06.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:07.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:08.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:09.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:10.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:11.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:12.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:13.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:14.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:15.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:16.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:17.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:18.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:19.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:20.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:21.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:22.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:23.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:24.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:25.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:26.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:27.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:28.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:29.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:30.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:31.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:32.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:33.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:34.389 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:35.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:36.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:37.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:38.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:39.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:40.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:41.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:42.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:43.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:44.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:45.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:46.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:47.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:48.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:49.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:50.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:51.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:52.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:53.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:54.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:55.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:56.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:57.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:58.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:12:59.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:00.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:01.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:02.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:03.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:04.390 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:05.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:06.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:07.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:08.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:09.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:10.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:11.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:12.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:13.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:14.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:15.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:16.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:17.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:18.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:19.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:20.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:21.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:22.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:23.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:24.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:25.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:26.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:27.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:28.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:29.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:30.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:31.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:32.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:33.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:34.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:35.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:36.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:37.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:38.391 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:39.392 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:40.392 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:41.392 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:42.392 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:43.392 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:44.392 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:45.392 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:46.392 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:47.392 status: 10 sm queries, 7 client(s) intercepted (2 from audio), 2 session(s) open, 83 requests, 0 forward failures, 0 memory reads failed
+13:13:51.146 S7 010000000000100d obj7 usb:hs: session closed (client gone), 1 left

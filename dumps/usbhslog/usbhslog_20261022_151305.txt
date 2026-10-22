@@ -1,0 +1,494 @@
+===== usbhs-logmitm 0.2.1  started 2026-10-22 15:13:05  (15.366 s after boot) =====
+(lines stamped +sssss.mmm are seconds since boot, logged before the clock was read)
++00015.356 usbhs-logmitm 0.2.1: HOS 22.1.0, SD OK
++00015.358 mitm: InstallMitm(usb:hs): OK
++00015.359 mitm: sm asks (cmd 65000) about usb:hs hid (pid 100, flags 0x2): leave, reply OK
++00015.359 mitm: ClearFutureMitm(usb:hs): OK
+15:13:05.283 config: enabled=1 services=usb:hs programs=homebrew 0100000000000014 read_ctrl_data=1 sync=1 hot_detail=40 buf_dump=64 log_keep=20 rewrite=ot_headphones,it_mic
+15:13:05.283 1 of 1 service(s) intercepted. Log: sdmc:/switch/usbhs-logmitm/logs/usbhslog_20261022_151305.txt
+15:13:05.564 mitm: sm asks (cmd 65000) about usb:hs hid (pid 100, flags 0x2): leave, reply OK
+15:13:05.809 mitm: sm asks (cmd 65000) about usb:hs 0100000000000046 (pid 105, flags 0x2): leave, reply OK
+15:13:06.313 mitm: sm asks (cmd 65000) about usb:hs audio (pid 101, flags 0x2): INTERCEPT, reply OK
+15:13:06.818 mitm: audio (pid 101) connected to usb:hs: session S1
+15:13:07.322 S1 audio usb:hs: control #3 QueryPointerBufferSize
+15:13:07.826   -> OK out [00100000 00000000 00000000 ]
+15:13:07.826 S1 audio usb:hs: control #0 ConvertCurrentObjectToDomain
+15:13:08.329   -> OK out [04000000 00000000 00000000 ]
+15:13:08.329    S1 audio obj4 usb:hs is a domain now (object 4)
+15:13:08.329 S1 audio obj4 usb:hs #0 BindClientProcess: in []
+15:13:08.833   -> OK out [00000000 00000000 ]
+15:13:08.833 S1 audio obj4 usb:hs #6 GetInterfaceStateChangeEvent: in []
+15:13:09.336   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:09.336 S1 audio obj4 usb:hs #4 CreateInterfaceAvailableEvent: in [00008000 00000000 00000000 00000001 0000]
+15:13:09.840   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:27.212 S1 audio obj4 usb:hs #2 QueryAvailableInterfaces: in [80000000 00000000 00000000 00010000 ] B+0x1140
+15:13:27.237   -> OK out [03000000 00000000 00000000 ]
+15:13:27.237      id 1342242816 dev2 3 unk 0x1: if 0 alt 0 eps 0 class 01/01/00
+15:13:27.237        dev 04e8:a05b bcd 0100 bus 2 dev 3 cfg total 345 ifs 5, ts 37578626927, path FsDevice3-/T2/P1/A01
+15:13:27.237      id 1342308353 dev2 3 unk 0x2: if 1 alt 0 eps 0 class 01/02/00
+15:13:27.237        dev 04e8:a05b bcd 0100 bus 2 dev 3 cfg total 345 ifs 5, ts 37578626927, path FsDevice3-/T2/P1/A01
+15:13:27.237      id 1342373890 dev2 3 unk 0x4: if 2 alt 0 eps 0 class 01/02/00
+15:13:27.237        dev 04e8:a05b bcd 0100 bus 2 dev 3 cfg total 345 ifs 5, ts 37578626927, path FsDevice3-/T2/P1/A01
+15:13:27.237 S1 audio obj4 usb:hs #7 AcquireUsbIf: in [00000150 ] B+0x70 B+0x1b8
+15:13:27.248   -> OK
+15:13:27.248      0000: 4673446576696365 332d2f54322f5031 2f41303100000000 0000000000000000 
+15:13:27.248      0020: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 
+15:13:27.248      id 1342242816 dev2 3 unk 0x1: if 0 alt 0 eps 0 class 01/01/00
+15:13:27.248    new S1 audio obj9 IF[id 1342242816 if 0]
+15:13:27.248 S1 audio obj9 IF[id 1342242816 if 0] #0 GetStateChangeEvent: in []
+15:13:27.262   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:27.262 S1 audio obj9 IF[id 1342242816 if 0] #6 GetCtrlXferCompletionEvent: in []
+15:13:27.276   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:27.277 S1 audio obj9 IF[id 1342242816 if 0] #5 CtrlXferAsync: IN  std    dev GET_DESCRIPTOR CONFIG idx 0 lang/if 0x0 len 345  [80 06 0200 0000 0159] buf 0x431906f000
+15:13:27.293   -> OK out [00000000 00000000 ]
+15:13:27.294 S1 audio obj9 IF[id 1342242816 if 0] #7 GetCtrlXferReport: in [] B+0x18
+15:13:27.306   -> OK out [00000000 00000000 ]
+15:13:27.306      IN data (345 bytes):
+15:13:27.306        0000: 09025901050100a0 3209040000000101 00000a240100014e 000201020c240201 
+15:13:27.306        0020: 0204060203000000 0d24060201020300 0000000006092403 0301010002000c24 
+15:13:27.306        0040: 0204010100020300 00000d2406050402 0300000000000609 2403060204010500 
+15:13:27.306        0060: 0904010000010200 0009040101010102 0000072401030001 000b240201020210 
+15:13:27.306        0080: 0180bb000905830d c000010000072501 0100000009040200 0001020000090402 
+15:13:27.306        00a0: 0101010200000724 01040001000e2402 010202100280bb00 0077010905030d80 
+15:13:27.306        00c0: 0101000007250101 0000000904020201 0102000007240104 0001000e24020102 
+15:13:27.306        00e0: 03180280bb000077 010905030d400201 0000072501010000 0009040203010102 
+15:13:27.306        0100: 0000072401040001 000e240201020420 0280bb0000770109 05030d0003010000 
+15:13:27.306        0120: 0725010100000009 0403000103000000 092111010001222f 0007058403030004 
+15:13:27.306        0140: 0904040001030000 0009211101000122 1400070585030500 04
+15:13:27.306        @000 CONFIG total 345 ifs 5 value 1 attr 0xa0 power 100 mA
+15:13:27.306        @009 INTERFACE if 0 alt 0 eps 0 class 01/01/00
+15:13:27.306        @018 CS_INTERFACE len 10
+15:13:27.306        @028 CS_INTERFACE len 12
+15:13:27.306        @040 CS_INTERFACE len 13
+15:13:27.306        @053 CS_INTERFACE len 9
+15:13:27.306        @062 CS_INTERFACE len 12
+15:13:27.306        @074 CS_INTERFACE len 13
+15:13:27.306        @087 CS_INTERFACE len 9
+15:13:27.306        @096 INTERFACE if 1 alt 0 eps 0 class 01/02/00
+15:13:27.306        @105 INTERFACE if 1 alt 1 eps 1 class 01/02/00
+15:13:27.306        @114 CS_INTERFACE len 7
+15:13:27.306        @121 CS_INTERFACE len 11
+15:13:27.306        @132 ENDPOINT 0x83 attr 0x0d mps 192 interval 1
+15:13:27.306        @141 CS_ENDPOINT len 7
+15:13:27.306        @148 INTERFACE if 2 alt 0 eps 0 class 01/02/00
+15:13:27.306        @157 INTERFACE if 2 alt 1 eps 1 class 01/02/00
+15:13:27.306        @166 CS_INTERFACE len 7
+15:13:27.306        @173 CS_INTERFACE len 14
+15:13:27.306        @187 ENDPOINT 0x03 attr 0x0d mps 384 interval 1
+15:13:27.306        @196 CS_ENDPOINT len 7
+15:13:27.306        @203 INTERFACE if 2 alt 2 eps 1 class 01/02/00
+15:13:27.306        @212 CS_INTERFACE len 7
+15:13:27.306        @219 CS_INTERFACE len 14
+15:13:27.306        @233 ENDPOINT 0x03 attr 0x0d mps 576 interval 1
+15:13:27.306        @242 CS_ENDPOINT len 7
+15:13:27.306        @249 INTERFACE if 2 alt 3 eps 1 class 01/02/00
+15:13:27.306        @258 CS_INTERFACE len 7
+15:13:27.306        @265 CS_INTERFACE len 14
+15:13:27.306        @279 ENDPOINT 0x03 attr 0x0d mps 768 interval 1
+15:13:27.306        @288 CS_ENDPOINT len 7
+15:13:27.306        @295 INTERFACE if 3 alt 0 eps 1 class 03/00/00
+15:13:27.306        @304 HID len 9
+15:13:27.306        @313 ENDPOINT 0x84 attr 0x03 mps 3 interval 4
+15:13:27.306        @320 INTERFACE if 4 alt 0 eps 1 class 03/00/00
+15:13:27.306        @329 HID len 9
+15:13:27.306        @338 ENDPOINT 0x85 attr 0x03 mps 5 interval 4
+15:13:27.306      rewrite: @028 input terminal 1: type 0x0402 -> 0x0201 (Microphone)
+15:13:27.306      rewrite: @087 output terminal 6: type 0x0402 -> 0x0302 (Headphones)
+15:13:27.306      rewrite (ot_headphones,it_mic): 2 field(s) written to audio's buffer: OK, read back the same
+15:13:27.306 S1 audio obj9 IF[id 1342242816 if 0]: domain object 9 closed
+15:13:27.326 S1 audio obj4 usb:hs #7 AcquireUsbIf: in [01000250 ] B+0x70 B+0x1b8
+15:13:27.339   -> OK
+15:13:27.339      0000: 4673446576696365 332d2f54322f5031 2f41303100000000 0000000000000000 
+15:13:27.339      0020: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 
+15:13:27.339      id 1342308353 dev2 3 unk 0x2: if 1 alt 0 eps 0 class 01/02/00
+15:13:27.339    new S1 audio obj9 IF[id 1342308353 if 1]
+15:13:27.339 S1 audio obj9 IF[id 1342308353 if 1] #0 GetStateChangeEvent: in []
+15:13:27.349   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:27.349 S1 audio obj9 IF[id 1342308353 if 1] #6 GetCtrlXferCompletionEvent: in []
+15:13:27.362   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:27.362 S1 audio obj9 IF[id 1342308353 if 1] #5 CtrlXferAsync: IN  std    dev GET_DESCRIPTOR CONFIG idx 0 lang/if 0x0 len 345  [80 06 0200 0000 0159] buf 0x431906f000
+15:13:27.388   -> OK out [00000000 00000000 ]
+15:13:27.389 S1 audio obj9 IF[id 1342308353 if 1] #7 GetCtrlXferReport: in [] B+0x18
+15:13:27.399   -> OK out [00000000 00000000 ]
+15:13:27.399      IN data (345 bytes):
+15:13:27.399        0000: 09025901050100a0 3209040000000101 00000a240100014e 000201020c240201 
+15:13:27.399        0020: 0204060203000000 0d24060201020300 0000000006092403 0301010002000c24 
+15:13:27.399        0040: 0204010100020300 00000d2406050402 0300000000000609 2403060204010500 
+15:13:27.399        0060: 0904010000010200 0009040101010102 0000072401030001 000b240201020210 
+15:13:27.399        0080: 0180bb000905830d c000010000072501 0100000009040200 0001020000090402 
+15:13:27.399        00a0: 0101010200000724 01040001000e2402 010202100280bb00 0077010905030d80 
+15:13:27.399        00c0: 0101000007250101 0000000904020201 0102000007240104 0001000e24020102 
+15:13:27.399        00e0: 03180280bb000077 010905030d400201 0000072501010000 0009040203010102 
+15:13:27.399        0100: 0000072401040001 000e240201020420 0280bb0000770109 05030d0003010000 
+15:13:27.399        0120: 0725010100000009 0403000103000000 092111010001222f 0007058403030004 
+15:13:27.399        0140: 0904040001030000 0009211101000122 1400070585030500 04
+15:13:27.399        @000 CONFIG total 345 ifs 5 value 1 attr 0xa0 power 100 mA
+15:13:27.399        @009 INTERFACE if 0 alt 0 eps 0 class 01/01/00
+15:13:27.399        @018 CS_INTERFACE len 10
+15:13:27.399        @028 CS_INTERFACE len 12
+15:13:27.399        @040 CS_INTERFACE len 13
+15:13:27.399        @053 CS_INTERFACE len 9
+15:13:27.399        @062 CS_INTERFACE len 12
+15:13:27.399        @074 CS_INTERFACE len 13
+15:13:27.399        @087 CS_INTERFACE len 9
+15:13:27.399        @096 INTERFACE if 1 alt 0 eps 0 class 01/02/00
+15:13:27.399        @105 INTERFACE if 1 alt 1 eps 1 class 01/02/00
+15:13:27.399        @114 CS_INTERFACE len 7
+15:13:27.399        @121 CS_INTERFACE len 11
+15:13:27.399        @132 ENDPOINT 0x83 attr 0x0d mps 192 interval 1
+15:13:27.399        @141 CS_ENDPOINT len 7
+15:13:27.399        @148 INTERFACE if 2 alt 0 eps 0 class 01/02/00
+15:13:27.399        @157 INTERFACE if 2 alt 1 eps 1 class 01/02/00
+15:13:27.399        @166 CS_INTERFACE len 7
+15:13:27.399        @173 CS_INTERFACE len 14
+15:13:27.399        @187 ENDPOINT 0x03 attr 0x0d mps 384 interval 1
+15:13:27.399        @196 CS_ENDPOINT len 7
+15:13:27.399        @203 INTERFACE if 2 alt 2 eps 1 class 01/02/00
+15:13:27.399        @212 CS_INTERFACE len 7
+15:13:27.399        @219 CS_INTERFACE len 14
+15:13:27.399        @233 ENDPOINT 0x03 attr 0x0d mps 576 interval 1
+15:13:27.399        @242 CS_ENDPOINT len 7
+15:13:27.399        @249 INTERFACE if 2 alt 3 eps 1 class 01/02/00
+15:13:27.399        @258 CS_INTERFACE len 7
+15:13:27.399        @265 CS_INTERFACE len 14
+15:13:27.399        @279 ENDPOINT 0x03 attr 0x0d mps 768 interval 1
+15:13:27.399        @288 CS_ENDPOINT len 7
+15:13:27.399        @295 INTERFACE if 3 alt 0 eps 1 class 03/00/00
+15:13:27.399        @304 HID len 9
+15:13:27.399        @313 ENDPOINT 0x84 attr 0x03 mps 3 interval 4
+15:13:27.399        @320 INTERFACE if 4 alt 0 eps 1 class 03/00/00
+15:13:27.399        @329 HID len 9
+15:13:27.399        @338 ENDPOINT 0x85 attr 0x03 mps 5 interval 4
+15:13:27.399      rewrite: @028 input terminal 1: type 0x0402 -> 0x0201 (Microphone)
+15:13:27.399      rewrite: @087 output terminal 6: type 0x0402 -> 0x0302 (Headphones)
+15:13:27.399      rewrite (ot_headphones,it_mic): 2 field(s) written to audio's buffer: OK, read back the same
+15:13:27.400 S1 audio obj9 IF[id 1342308353 if 1]: domain object 9 closed
+15:13:27.421 S1 audio obj4 usb:hs #7 AcquireUsbIf: in [01000250 ] B+0x70 B+0x1b8
+15:13:27.433   -> OK
+15:13:27.433      0000: 4673446576696365 332d2f54322f5031 2f41303100000000 0000000000000000 
+15:13:27.433      0020: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 
+15:13:27.433      id 1342308353 dev2 3 unk 0x2: if 1 alt 0 eps 0 class 01/02/00
+15:13:27.433    new S1 audio obj9 IF[id 1342308353 if 1]
+15:13:27.433 S1 audio obj9 IF[id 1342308353 if 1] #0 GetStateChangeEvent: in []
+15:13:27.446   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:27.446 S1 audio obj9 IF[id 1342308353 if 1] #6 GetCtrlXferCompletionEvent: in []
+15:13:27.462   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:27.462 S1 audio obj9 IF[id 1342308353 if 1] #1 SetInterface: in [00] B+0x1b8
+15:13:27.474   -> OK out [00000000 00000000 ]
+15:13:27.474      id 0 dev2 3 unk 0x2: if 1 alt 0 eps 0 class 01/02/00
+15:13:27.474 S1 audio obj4 usb:hs #7 AcquireUsbIf: in [02000350 ] B+0x70 B+0x1b8
+15:13:27.486   -> OK
+15:13:27.486      0000: 4673446576696365 332d2f54322f5031 2f41303100000000 0000000000000000 
+15:13:27.486      0020: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 
+15:13:27.486      id 1342373890 dev2 3 unk 0x4: if 2 alt 0 eps 0 class 01/02/00
+15:13:27.486    new S1 audio obj10 IF[id 1342373890 if 2]
+15:13:27.486 S1 audio obj10 IF[id 1342373890 if 2] #0 GetStateChangeEvent: in []
+15:13:27.513   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:27.513 S1 audio obj10 IF[id 1342373890 if 2] #6 GetCtrlXferCompletionEvent: in []
+15:13:27.526   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:27.526 S1 audio obj10 IF[id 1342373890 if 2] #5 CtrlXferAsync: IN  std    dev GET_DESCRIPTOR CONFIG idx 0 lang/if 0x0 len 345  [80 06 0200 0000 0159] buf 0x431906f000
+15:13:27.537   -> OK out [00000000 00000000 ]
+15:13:27.538 S1 audio obj10 IF[id 1342373890 if 2] #7 GetCtrlXferReport: in [] B+0x18
+15:13:27.550   -> OK out [00000000 00000000 ]
+15:13:27.550      IN data (345 bytes):
+15:13:27.550        0000: 09025901050100a0 3209040000000101 00000a240100014e 000201020c240201 
+15:13:27.550        0020: 0204060203000000 0d24060201020300 0000000006092403 0301010002000c24 
+15:13:27.550        0040: 0204010100020300 00000d2406050402 0300000000000609 2403060204010500 
+15:13:27.550        0060: 0904010000010200 0009040101010102 0000072401030001 000b240201020210 
+15:13:27.550        0080: 0180bb000905830d c000010000072501 0100000009040200 0001020000090402 
+15:13:27.550        00a0: 0101010200000724 01040001000e2402 010202100280bb00 0077010905030d80 
+15:13:27.550        00c0: 0101000007250101 0000000904020201 0102000007240104 0001000e24020102 
+15:13:27.550        00e0: 03180280bb000077 010905030d400201 0000072501010000 0009040203010102 
+15:13:27.550        0100: 0000072401040001 000e240201020420 0280bb0000770109 05030d0003010000 
+15:13:27.550        0120: 0725010100000009 0403000103000000 092111010001222f 0007058403030004 
+15:13:27.550        0140: 0904040001030000 0009211101000122 1400070585030500 04
+15:13:27.550        @000 CONFIG total 345 ifs 5 value 1 attr 0xa0 power 100 mA
+15:13:27.550        @009 INTERFACE if 0 alt 0 eps 0 class 01/01/00
+15:13:27.550        @018 CS_INTERFACE len 10
+15:13:27.550        @028 CS_INTERFACE len 12
+15:13:27.550        @040 CS_INTERFACE len 13
+15:13:27.550        @053 CS_INTERFACE len 9
+15:13:27.550        @062 CS_INTERFACE len 12
+15:13:27.550        @074 CS_INTERFACE len 13
+15:13:27.550        @087 CS_INTERFACE len 9
+15:13:27.550        @096 INTERFACE if 1 alt 0 eps 0 class 01/02/00
+15:13:27.550        @105 INTERFACE if 1 alt 1 eps 1 class 01/02/00
+15:13:27.550        @114 CS_INTERFACE len 7
+15:13:27.550        @121 CS_INTERFACE len 11
+15:13:27.550        @132 ENDPOINT 0x83 attr 0x0d mps 192 interval 1
+15:13:27.550        @141 CS_ENDPOINT len 7
+15:13:27.550        @148 INTERFACE if 2 alt 0 eps 0 class 01/02/00
+15:13:27.550        @157 INTERFACE if 2 alt 1 eps 1 class 01/02/00
+15:13:27.550        @166 CS_INTERFACE len 7
+15:13:27.550        @173 CS_INTERFACE len 14
+15:13:27.550        @187 ENDPOINT 0x03 attr 0x0d mps 384 interval 1
+15:13:27.550        @196 CS_ENDPOINT len 7
+15:13:27.550        @203 INTERFACE if 2 alt 2 eps 1 class 01/02/00
+15:13:27.550        @212 CS_INTERFACE len 7
+15:13:27.550        @219 CS_INTERFACE len 14
+15:13:27.550        @233 ENDPOINT 0x03 attr 0x0d mps 576 interval 1
+15:13:27.550        @242 CS_ENDPOINT len 7
+15:13:27.550        @249 INTERFACE if 2 alt 3 eps 1 class 01/02/00
+15:13:27.550        @258 CS_INTERFACE len 7
+15:13:27.550        @265 CS_INTERFACE len 14
+15:13:27.550        @279 ENDPOINT 0x03 attr 0x0d mps 768 interval 1
+15:13:27.550        @288 CS_ENDPOINT len 7
+15:13:27.550        @295 INTERFACE if 3 alt 0 eps 1 class 03/00/00
+15:13:27.550        @304 HID len 9
+15:13:27.550        @313 ENDPOINT 0x84 attr 0x03 mps 3 interval 4
+15:13:27.550        @320 INTERFACE if 4 alt 0 eps 1 class 03/00/00
+15:13:27.550        @329 HID len 9
+15:13:27.550        @338 ENDPOINT 0x85 attr 0x03 mps 5 interval 4
+15:13:27.550      rewrite: @028 input terminal 1: type 0x0402 -> 0x0201 (Microphone)
+15:13:27.550      rewrite: @087 output terminal 6: type 0x0402 -> 0x0302 (Headphones)
+15:13:27.550      rewrite (ot_headphones,it_mic): 2 field(s) written to audio's buffer: OK, read back the same
+15:13:27.550 S1 audio obj10 IF[id 1342373890 if 2]: domain object 10 closed
+15:13:27.574 S1 audio obj4 usb:hs #7 AcquireUsbIf: in [02000350 ] B+0x70 B+0x1b8
+15:13:27.586   -> OK
+15:13:27.586      0000: 4673446576696365 332d2f54322f5031 2f41303100000000 0000000000000000 
+15:13:27.586      0020: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 
+15:13:27.586      id 1342373890 dev2 3 unk 0x4: if 2 alt 0 eps 0 class 01/02/00
+15:13:27.586    new S1 audio obj10 IF[id 1342373890 if 2]
+15:13:27.586 S1 audio obj10 IF[id 1342373890 if 2] #0 GetStateChangeEvent: in []
+15:13:27.601   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:27.601 S1 audio obj10 IF[id 1342373890 if 2] #6 GetCtrlXferCompletionEvent: in []
+15:13:27.614   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:27.614 S1 audio obj10 IF[id 1342373890 if 2] #1 SetInterface: in [00] B+0x1b8
+15:13:27.640   -> OK out [00000000 00000000 ]
+15:13:27.640      id 0 dev2 3 unk 0x4: if 2 alt 0 eps 0 class 01/02/00
+15:13:27.648 S1 audio obj10 IF[id 1342373890 if 2] #5 CtrlXferAsync: IN  class  if  UAC GET_CUR entity 5 if 0 sel 0x02(VOLUME) ch 0 len 2  [a1 81 0200 0500 0002] buf 0x4319073000
+15:13:27.663   -> OK out [00000000 00000000 ]
+15:13:27.664 S1 audio obj10 IF[id 1342373890 if 2] #7 GetCtrlXferReport: in [] B+0x18
+15:13:27.829   -> OK out [00000000 00000000 ]
+15:13:27.829      IN data (2 bytes):
+15:13:27.829        0000: 00fc
+15:13:27.829 S1 audio obj10 IF[id 1342373890 if 2] #5 CtrlXferAsync: IN  class  if  UAC GET_MAX entity 5 if 0 sel 0x02(VOLUME) ch 0 len 2  [a1 83 0200 0500 0002] buf 0x4319073000
+15:13:27.844   -> OK out [00000000 00000000 ]
+15:13:27.844 S1 audio obj10 IF[id 1342373890 if 2] #7 GetCtrlXferReport: in [] B+0x18
+15:13:27.857   -> OK out [00000000 00000000 ]
+15:13:27.857      IN data (2 bytes):
+15:13:27.857        0000: 0000
+15:13:27.857 S1 audio obj10 IF[id 1342373890 if 2] #5 CtrlXferAsync: IN  class  if  UAC GET_MIN entity 5 if 0 sel 0x02(VOLUME) ch 0 len 2  [a1 82 0200 0500 0002] buf 0x4319073000
+15:13:27.870   -> OK out [00000000 00000000 ]
+15:13:27.870 S1 audio obj10 IF[id 1342373890 if 2] #7 GetCtrlXferReport: in [] B+0x18
+15:13:27.881   -> OK out [00000000 00000000 ]
+15:13:27.881      IN data (2 bytes):
+15:13:27.881        0000: 00c4
+15:13:27.881 S1 audio obj10 IF[id 1342373890 if 2] #5 CtrlXferAsync: IN  class  if  UAC GET_CUR entity 5 if 0 sel 0x01(MUTE) ch 0 len 1  [a1 81 0100 0500 0001] buf 0x4319073000
+15:13:27.892   -> OK out [00000000 00000000 ]
+15:13:27.893 S1 audio obj10 IF[id 1342373890 if 2] #7 GetCtrlXferReport: in [] B+0x18
+15:13:27.907   -> OK out [00000000 00000000 ]
+15:13:27.907      IN data (1 bytes):
+15:13:27.907        0000: 00
+15:13:27.907 S1 audio obj10 IF[id 1342373890 if 2] #5 CtrlXferAsync: OUT class  if  UAC SET_CUR entity 5 if 0 sel 0x02(VOLUME) ch 0 len 4  [21 01 0200 0500 0004] buf 0x4319073000
+15:13:27.907      OUT data (4 bytes):
+15:13:27.907        0000: 00000000
+15:13:27.920   -> OK out [00000000 00000000 ]
+15:13:27.920 S1 audio obj10 IF[id 1342373890 if 2] #7 GetCtrlXferReport: in [] B+0x18
+15:13:27.931   -> OK out [00000000 00000000 ]
+15:13:27.931 S1 audio obj10 IF[id 1342373890 if 2] #1 SetInterface: in [01] B+0x1b8
+15:13:27.942   -> OK out [00000000 00000000 ]
+15:13:27.942      id 0 dev2 3 unk 0x4: if 2 alt 1 eps 1 class 01/02/00
+15:13:27.942        out eps: 0x03(attr 0x0d mps 384 int 1)
+15:13:27.943 S1 audio obj10 IF[id 1342373890 if 2] #9 OpenUsbEp: in [03000000 02000000 03000000 01000000 e0010000 ]
+15:13:27.954   -> OK out [0905030d 800101]
+15:13:27.954    new S1 audio obj11 EP[0x03]
+15:13:27.954 S1 audio obj11 EP[0x03] #3 PopulateRing: in []
+15:13:27.954   -> OK out [00000000 00000000 ]
+15:13:27.954 S1 audio obj11 EP[0x03] #2 GetCompletionEvent: in []
+15:13:27.966   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:27.966 S1 audio obj11 EP[0x03] #7 CreateSmmuSpace: in [00300000 00000000 00500919 43000000 ]
+15:13:27.980   -> OK out [00000000 00000000 ]
+15:13:27.980 S1 audio obj11 EP[0x03] #8 ShareReportRing: in [00100000 ]
+15:13:28.007   -> OK out [00000000 00000000 ]
+15:13:28.007 S1 audio obj10 IF[id 1342373890 if 2] #5 CtrlXferAsync: OUT class  ep  UAC SET_CUR ep 0x03 sel 0x01(SAMPLING_FREQ) len 3  [22 01 0100 0003 0003] buf 0x4319073000
+15:13:28.007      OUT data (3 bytes):
+15:13:28.007        0000: 80bb00
+15:13:28.020   -> OK out [00000000 00000000 ]
+15:13:28.020 S1 audio obj10 IF[id 1342373890 if 2] #7 GetCtrlXferReport: in [] B+0x18
+15:13:28.032   -> OK out [00000000 00000000 ]
+15:13:28.032 S1 audio obj10 IF[id 1342373890 if 2] #4 GetCurrentFrame: in []
+15:13:28.032   -> OK out [a4030000 00000000 00000000 ]
+15:13:28.032 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 945 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.032   -> OK out [00010000 00000000 00000000 ]
+15:13:28.032 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 950 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.032   -> OK out [01010000 00000000 00000000 ]
+15:13:28.033 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 955 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.033   -> OK out [02010000 00000000 00000000 ]
+15:13:28.050 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 960 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.050   -> OK out [03010000 00000000 00000000 ]
+15:13:28.054 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 965 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.054   -> OK out [00020000 00000000 00000000 ]
+15:13:28.059 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 970 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.059   -> OK out [01020000 00000000 00000000 ]
+15:13:28.064 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 975 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.064   -> OK out [02020000 00000000 00000000 ]
+15:13:28.069 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 980 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.069   -> OK out [03020000 00000000 00000000 ]
+15:13:28.074 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 985 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.074   -> OK out [00030000 00000000 00000000 ]
+15:13:28.079 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 990 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.079   -> OK out [01030000 00000000 00000000 ]
+15:13:28.084 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 995 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.084   -> OK out [02030000 00000000 00000000 ]
+15:13:28.089 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1000 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.089   -> OK out [03030000 00000000 00000000 ]
+15:13:28.094 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1005 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.094   -> OK out [00040000 00000000 00000000 ]
+15:13:28.100 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1010 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.100   -> OK out [01040000 00000000 00000000 ]
+15:13:28.104 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1015 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.104   -> OK out [02040000 00000000 00000000 ]
+15:13:28.109 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1020 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.109   -> OK out [03040000 00000000 00000000 ]
+15:13:28.114 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1025 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.114   -> OK out [00050000 00000000 00000000 ]
+15:13:28.119 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1030 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.119   -> OK out [01050000 00000000 00000000 ]
+15:13:28.124 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1035 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.124   -> OK out [02050000 00000000 00000000 ]
+15:13:28.129 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1040 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.129   -> OK out [03050000 00000000 00000000 ]
+15:13:28.134 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1045 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.134   -> OK out [00060000 00000000 00000000 ]
+15:13:28.139 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1050 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.139   -> OK out [01060000 00000000 00000000 ]
+15:13:28.144 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1055 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.144   -> OK out [02060000 00000000 00000000 ]
+15:13:28.150 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1060 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.150   -> OK out [03060000 00000000 00000000 ]
+15:13:28.154 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1065 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.154   -> OK out [00070000 00000000 00000000 ]
+15:13:28.159 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1070 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.159   -> OK out [01070000 00000000 00000000 ]
+15:13:28.164 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1075 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.164   -> OK out [02070000 00000000 00000000 ]
+15:13:28.169 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1080 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.169   -> OK out [03070000 00000000 00000000 ]
+15:13:28.174 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1085 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.174   -> OK out [00080000 00000000 00000000 ]
+15:13:28.179 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1090 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.179   -> OK out [01080000 00000000 00000000 ]
+15:13:28.184 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1095 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.184   -> OK out [02080000 00000000 00000000 ]
+15:13:28.189 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1100 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.189   -> OK out [03080000 00000000 00000000 ]
+15:13:28.194 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1105 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.194   -> OK out [00090000 00000000 00000000 ]
+15:13:28.200 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1110 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.200   -> OK out [01090000 00000000 00000000 ]
+15:13:28.204 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1115 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.204   -> OK out [02090000 00000000 00000000 ]
+15:13:28.209 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1120 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.209   -> OK out [03090000 00000000 00000000 ]
+15:13:28.214 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1125 (frame) buf 0x4319095000 id 0x0 sizes 192 192 192 192 192
+15:13:28.214   -> OK out [000a0000 00000000 00000000 ]
+15:13:28.219 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1130 (frame) buf 0x4319096000 id 0x1 sizes 192 192 192 192 192
+15:13:28.219   -> OK out [010a0000 00000000 00000000 ]
+15:13:28.224 S1 audio obj11 EP[0x03]: further BatchBufferAsync-type requests are only counted (every 5 s)
+15:13:28.224 S1 audio obj11 EP[0x03] #6 BatchBufferAsync: 5 urbs unk1 0 unk2 1135 (frame) buf 0x4319097000 id 0x2 sizes 192 192 192 192 192
+15:13:28.224   -> OK out [020a0000 00000000 00000000 ]
+15:13:32.954 S1 audio obj11 EP[0x03]: 1 x PopulateRing 985 x BatchBufferAsync in 5000 ms (0 failed)
+15:13:36.723 mitm: sm asks (cmd 65000) about usb:hs 010000000000100d (pid 138, flags 0x1b): INTERCEPT, reply OK
+15:13:36.781 mitm: 010000000000100d (pid 138) connected to usb:hs: session S2
+15:13:36.793 S1 audio obj10 IF[id 1342373890 if 2] #4 GetCurrentFrame: in []
+15:13:36.793   -> OK out [dd050000 00000000 00000000 ]
+15:13:36.793 S2 010000000000100d usb:hs: control #3 QueryPointerBufferSize
+15:13:36.804   -> OK out [00100000 00000000 00000000 ]
+15:13:36.804 S2 010000000000100d usb:hs: control #0 ConvertCurrentObjectToDomain
+15:13:36.816   -> OK out [0c000000 00000000 00000000 ]
+15:13:36.816    S2 010000000000100d obj12 usb:hs is a domain now (object 12)
+15:13:36.816 S2 010000000000100d obj12 usb:hs #0 BindClientProcess: in []
+15:13:36.827   -> OK out [00000000 00000000 ]
+15:13:36.827 S1 audio obj10 IF[id 1342373890 if 2] #4 GetCurrentFrame: in []
+15:13:36.827   -> OK out [ff050000 00000000 00000000 ]
+15:13:36.827 S2 010000000000100d obj12 usb:hs #6 GetInterfaceStateChangeEvent: in []
+15:13:36.853   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:36.853 S2 010000000000100d obj12 usb:hs #4 CreateInterfaceAvailableEvent: in [01008001 00000000 00000000 00000008 0600]
+15:13:36.865   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:36.865 S2 010000000000100d obj12 usb:hs #4 CreateInterfaceAvailableEvent: in [00008001 00000000 00000000 00000008 0200]
+15:13:36.989   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:13:36.989 S1 audio obj10 IF[id 1342373890 if 2] #4 GetCurrentFrame: in []
+15:13:36.989   -> OK out [a1060000 00000000 00000000 ]
+15:13:37.956 S1 audio obj11 EP[0x03]: 961 x BatchBufferAsync in 5002 ms (0 failed)
+15:13:37.989 S2 010000000000100d obj12 usb:hs #2 QueryAvailableInterfaces: in [80010000 00000000 00000000 00080200 ] B+0x1140
+15:13:38.013   -> OK out [00000000 00000000 00000000 ]
+15:13:38.013 S1 audio obj10 IF[id 1342373890 if 2] #4 GetCurrentFrame: in []
+15:13:38.013   -> OK out [a1020000 00000000 00000000 ]
+15:13:38.385 S2 010000000000100d obj12 usb:hs #5 DestroyInterfaceAvailableEvent: in [00]
+15:13:38.430   -> OK out [00000000 00000000 ]
+15:13:38.430 S1 audio obj10 IF[id 1342373890 if 2] #4 GetCurrentFrame: in []
+15:13:38.430   -> OK out [42040000 00000000 00000000 ]
+15:13:38.431 S2 010000000000100d obj12 usb:hs #5 DestroyInterfaceAvailableEvent: in [01]
+15:13:38.442   -> OK out [00000000 00000000 ]
+15:13:38.442 S2 010000000000100d obj12 usb:hs: session closed (client closed it), 1 left
+15:13:42.959 S1 audio obj11 EP[0x03]: 989 x BatchBufferAsync in 5003 ms (0 failed)
+15:13:47.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:13:52.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:13:57.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:14:02.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:14:05.796 status: 5 sm queries, 2 client(s) intercepted (1 from audio), 1 session(s) open, 7567 requests, 0 forward failures, 3 descriptor rewrite(s), 0 memory reads failed
+15:14:07.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:14:08.713 S1 audio obj10 IF[id 1342373890 if 2] #4 GetCurrentFrame: in []
+15:14:08.713   -> OK out [8d020000 00000000 00000000 ]
+15:14:12.959 S1 audio obj11 EP[0x03]: 998 x BatchBufferAsync in 5000 ms (0 failed)
+15:14:17.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:14:22.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:14:27.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:14:32.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:14:37.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:14:42.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:14:47.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:14:52.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:14:57.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:15:02.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:15:05.796 status: 5 sm queries, 2 client(s) intercepted (1 from audio), 1 session(s) open, 19566 requests, 0 forward failures, 3 descriptor rewrite(s), 0 memory reads failed
+15:15:07.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:15:12.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:15:17.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:15:22.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:15:27.959 S1 audio obj11 EP[0x03]: 1000 x BatchBufferAsync in 5000 ms (0 failed)
+15:15:29.691 S1 audio obj9 IF[id 1342308353 if 1]: domain object 9 closed
+15:15:30.194 S1 audio obj10 IF[id 1342373890 if 2] #4 GetCurrentFrame: in []
+15:15:30.194   -> 0x25A8C (2140-0301) out [00000000 00000000 ]
+15:15:30.194 S1 audio obj11 EP[0x03] #1 Close: in []
+15:15:30.697   -> 0x25A8C (2140-0301) out [00000000 00000000 ]
+15:15:30.697 S1 audio obj11 EP[0x03]: domain object 11 closed
+15:15:31.218 S1 audio obj10 IF[id 1342373890 if 2] #1 SetInterface: in [00] B+0x1b8
+15:15:31.466   -> 0x25A8C (2140-0301) out [00000000 00000000 ]
+15:15:31.467 S1 audio obj10 IF[id 1342373890 if 2]: domain object 10 closed
+15:15:38.732 mitm: sm asks (cmd 65000) about usb:hs 010000000000100d (pid 141, flags 0x1b): INTERCEPT, reply OK
+15:15:38.798 mitm: 010000000000100d (pid 141) connected to usb:hs: session S3
+15:15:38.825 S3 010000000000100d usb:hs: control #3 QueryPointerBufferSize
+15:15:38.835   -> OK out [00100000 00000000 00000000 ]
+15:15:38.835 S3 010000000000100d usb:hs: control #0 ConvertCurrentObjectToDomain
+15:15:38.845   -> OK out [0a000000 00000000 00000000 ]
+15:15:38.845    S3 010000000000100d obj10 usb:hs is a domain now (object 10)
+15:15:38.845 S3 010000000000100d obj10 usb:hs #0 BindClientProcess: in []
+15:15:38.855   -> OK out [00000000 00000000 ]
+15:15:38.855 S3 010000000000100d obj10 usb:hs #6 GetInterfaceStateChangeEvent: in []
+15:15:38.866   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:15:38.866 S3 010000000000100d obj10 usb:hs #4 CreateInterfaceAvailableEvent: in [01008001 00000000 00000000 00000008 0600]
+15:15:38.877   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:15:38.878 S3 010000000000100d obj10 usb:hs #4 CreateInterfaceAvailableEvent: in [00008001 00000000 00000000 00000008 0200]
+15:15:39.034   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:15:40.034 S3 010000000000100d obj10 usb:hs #2 QueryAvailableInterfaces: in [80010000 00000000 00000000 00080200 ] B+0x1140
+15:15:40.077   -> OK out [00000000 00000000 00000000 ]
+15:15:40.077 S3 010000000000100d obj10 usb:hs #5 DestroyInterfaceAvailableEvent: in [00]
+15:15:40.089   -> OK out [00000000 00000000 ]
+15:15:40.191 S3 010000000000100d obj10 usb:hs #5 DestroyInterfaceAvailableEvent: in [01]
+15:15:40.208   -> OK out [00000000 00000000 ]
+15:15:40.208 S3 010000000000100d obj10 usb:hs: session closed (client closed it), 1 left
+15:15:41.357 mitm: sm asks (cmd 65000) about usb:hs 010000000000100d (pid 141, flags 0x1b): INTERCEPT, reply OK
+15:15:41.375 mitm: 010000000000100d (pid 141) connected to usb:hs: session S4
+15:15:41.385 S4 010000000000100d usb:hs: control #3 QueryPointerBufferSize
+15:15:41.395   -> OK out [00100000 00000000 00000000 ]
+15:15:41.395 S4 010000000000100d usb:hs: control #0 ConvertCurrentObjectToDomain
+15:15:41.406   -> OK out [0a000000 00000000 00000000 ]
+15:15:41.406    S4 010000000000100d obj10 usb:hs is a domain now (object 10)
+15:15:41.406 S4 010000000000100d obj10 usb:hs #0 BindClientProcess: in []
+15:15:41.418   -> OK out [00000000 00000000 ]
+15:15:41.418 S4 010000000000100d obj10 usb:hs #6 GetInterfaceStateChangeEvent: in []
+15:15:41.429   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+15:15:41.429 S4 010000000000100d obj10 usb:hs #4 CreateInterfaceAvailableEvent: in [00000000 00000000 00000000 00000000 0000]
+15:15:41.466   -> OK out [00000000 00000000 00000000 00000000 ] +handle

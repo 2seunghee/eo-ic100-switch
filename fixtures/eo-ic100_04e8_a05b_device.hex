@@ -1,0 +1,4 @@
+# Samsung USB C Earphones (EO-IC100) device descriptor, 18 bytes, from the user's own unit (2026-10-20).
+# bcdUSB 2.00, class 0, bMaxPacketSize0 64, 04e8:a05b, bcdDevice 1.00,
+# iManufacturer 1 "Samsung", iProduct 2 "Samsung USB C Earphones", iSerial 3, 1 configuration. Full-speed.
+12 01 00 02 00 00 00 40 e8 04 5b a0 00 01 01 02 03 01

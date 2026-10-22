@@ -1,0 +1,42 @@
+# Samsung USB C Earphones (EO-IC100), VID:PID 04e8:a05b, strings "Samsung" / "Samsung USB C Earphones"
+# Configuration descriptor, 345 bytes. Raw dump of the user's own unit taken on 2026-10-20 with
+# pc/dump_usb_descriptors.ps1 (Windows hub IOCTL, full-speed). Differs from the public a054 dump:
+# playback is IT4 -> FU5 -> OT6, rates 48/96 kHz only, extra 32-bit alt3, HID bInterval 4.
+
+09 02 59 01 05 01 00 a0 32                                   # CONFIG
+09 04 00 00 00 01 01 00 00                                   # IF0 alt0 class 1/1/0, 0 EP
+0a 24 01 00 01 4e 00 02 01 02                                # AC HEADER
+0c 24 02 01 02 04 06 02 03 00 00 00                          # INPUT_TERMINAL id1
+0d 24 06 02 01 02 03 00 00 00 00 00 06                       # FEATURE_UNIT id2
+09 24 03 03 01 01 00 02 00                                   # OUTPUT_TERMINAL id3
+0c 24 02 04 01 01 00 02 03 00 00 00                          # INPUT_TERMINAL id4
+0d 24 06 05 04 02 03 00 00 00 00 00 06                       # FEATURE_UNIT id5
+09 24 03 06 02 04 01 05 00                                   # OUTPUT_TERMINAL id6
+09 04 01 00 00 01 02 00 00                                   # IF1 alt0 class 1/2/0, 0 EP
+09 04 01 01 01 01 02 00 00                                   # IF1 alt1 class 1/2/0, 1 EP
+07 24 01 03 00 01 00                                         # AS_GENERAL
+0b 24 02 01 02 02 10 01 80 bb 00                             # FORMAT_TYPE
+09 05 83 0d c0 00 01 00 00                                   # EP 0x83 attr 0x0d maxpkt 192 interval 1
+07 25 01 01 00 00 00                                         # CS_ENDPOINT
+09 04 02 00 00 01 02 00 00                                   # IF2 alt0 class 1/2/0, 0 EP
+09 04 02 01 01 01 02 00 00                                   # IF2 alt1 class 1/2/0, 1 EP
+07 24 01 04 00 01 00                                         # AS_GENERAL
+0e 24 02 01 02 02 10 02 80 bb 00 00 77 01                    # FORMAT_TYPE
+09 05 03 0d 80 01 01 00 00                                   # EP 0x03 attr 0x0d maxpkt 384 interval 1
+07 25 01 01 00 00 00                                         # CS_ENDPOINT
+09 04 02 02 01 01 02 00 00                                   # IF2 alt2 class 1/2/0, 1 EP
+07 24 01 04 00 01 00                                         # AS_GENERAL
+0e 24 02 01 02 03 18 02 80 bb 00 00 77 01                    # FORMAT_TYPE
+09 05 03 0d 40 02 01 00 00                                   # EP 0x03 attr 0x0d maxpkt 576 interval 1
+07 25 01 01 00 00 00                                         # CS_ENDPOINT
+09 04 02 03 01 01 02 00 00                                   # IF2 alt3 class 1/2/0, 1 EP
+07 24 01 04 00 01 00                                         # AS_GENERAL
+0e 24 02 01 02 04 20 02 80 bb 00 00 77 01                    # FORMAT_TYPE
+09 05 03 0d 00 03 01 00 00                                   # EP 0x03 attr 0x0d maxpkt 768 interval 1
+07 25 01 01 00 00 00                                         # CS_ENDPOINT
+09 04 03 00 01 03 00 00 00                                   # IF3 alt0 class 3/0/0, 1 EP
+09 21 11 01 00 01 22 2f 00                                   # HID
+07 05 84 03 03 00 04                                         # EP 0x84 attr 0x03 maxpkt 3 interval 4
+09 04 04 00 01 03 00 00 00                                   # IF4 alt0 class 3/0/0, 1 EP
+09 21 11 01 00 01 22 14 00                                   # HID
+07 05 85 03 05 00 04                                         # EP 0x85 attr 0x03 maxpkt 5 interval 4
