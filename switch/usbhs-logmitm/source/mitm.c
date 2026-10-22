@@ -409,59 +409,17 @@ static bool is_eo_ic100(u16 vid, u16 pid) { return vid == 0x04E8 && (pid == 0xA0
 // before it gets the transfer report, i.e. before it can parse it. Only rules that keep every length
 // (rewrite.c). The write goes through the same debug handle as the reads; the kernel writes through
 // its own mapping of the page, so the client sees the new bytes on its next access.
-// The rules for this plug-in: config.ini's rewrite=, unless an app asked for others in
-// OVERRIDE_PATH (eofm's speaker output: the microphone only, so that the console does not take the
-// earphone as its output and plays on its own speaker). Read at each descriptor read, which happens
-// only while the earphone enumerates.
-#define OVERRIDE_PATH "sdmc:/switch/usbhs-logmitm/rewrite_override.txt"
-
-// The override file's first line, "" without one.
-static void override_text(char *text, size_t size) {
-    text[0] = 0;
-    FILE *f = fopen(OVERRIDE_PATH, "rb");
-    if (!f) return;
-    size_t n = fread(text, 1, size - 1, f);
-    fclose(f);
-    text[n] = 0;
-    for (char *c = text; *c; c++)
-        if (*c == '\r' || *c == '\n') *c = 0;
-}
-
-// "hide": the audio sysmodule does not see the EO-IC100 at all (eofm's speaker output takes its
-// microphone itself, and the console plays on its speaker as no USB output exists).
-// Switched off (0.3.1): with the earphone left out of its list, the audio sysmodule acquired the
-// emptied slots (interface ID 0, eight times) and then crashed on a null pointer (0.3.0 on the
-// console, fatal in 0100000000000014 and then in qlaunch). It does not trust the count.
-static bool audio_hidden(void) { return false; }
-
-static unsigned current_rules(bool *overridden) {
-    *overridden = false;
-    char text[64];
-    override_text(text, sizeof(text));
-    if (!text[0]) return M.cfg->rewrite;
-    if (!strcmp(text, "hide")) {
-        *overridden = true;
-        return 0;
-    }
-    unsigned rules;
-    const char *bad = NULL;
-    if (rewrite_parse(text, &rules, &bad) != 0) {
-        log_printf("     rewrite: %s has an unknown rule \"%s\", using config.ini", OVERRIDE_PATH, bad ? bad : "?");
-        return M.cfg->rewrite;
-    }
-    *overridden = true;
-    return rules;
-}
+// No file system (or any other IPC) between forward() and the reply: the real reply waits in this
+// thread's TLS, and an IPC call would overwrite it. 0.2.2-0.3.3 read rewrite_override.txt here (an
+// fopen), so audio got the file system's answer instead of its transfer report and never took the
+// earphone; 0.2.1 had no such read and worked. The override (eofm's speaker output) is gone.
+static bool audio_hidden(void) { return false; }   // hiding from audio crashed it (0.3.0)
 
 static void rewrite_ctrl_data(msess *s, objst *o, size_t len) {
     if (s->program != PROGRAM_AUDIO || !is_eo_ic100(o->vid, o->pid)) return;
     if (o->setup[0] != 0x80 || o->setup[1] != 6 || o->setup[3] != 2 || len < 9 || !o->ctrl_buf) return;
-    bool overridden;
-    unsigned rules = current_rules(&overridden);
-    if (!rules) {
-        if (overridden) log_printf("     rewrite: none (asked for by %s)", OVERRIDE_PATH);
-        return;
-    }
+    unsigned rules = M.cfg->rewrite;
+    if (!rules) return;
     static u8 buf[CTRL_DUMP], check[CTRL_DUMP];
     size_t n = len < sizeof(buf) ? len : sizeof(buf);
     Handle d;
@@ -493,7 +451,6 @@ static void rewrite_ctrl_data(msess *s, objst *o, size_t len) {
     }
     char names[100];
     rewrite_names(rules, names, sizeof(names));
-    if (overridden) strcat(names, ", from the override file");
     if (!changed) {
         log_printf("     rewrite (%s): nothing to change in these %u bytes", names, (unsigned)n);
         return;
