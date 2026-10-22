@@ -56,6 +56,7 @@ typedef struct {
 
 typedef struct {
     Handle srv, fwd;
+    Handle proc;             // the client's process handle from BindClientProcess (kept for cache maintenance)
     bool   domain;
     int    svc;
     int    serial;
@@ -294,6 +295,7 @@ static msess *add_session(Handle srv, Handle fwd, int svc, u64 program, u64 pid,
     }
     msess *s = &M.s[M.n++];
     *s = (msess){.srv = srv, .fwd = fwd, .svc = svc, .serial = ++M.serial, .program = program, .pid = pid, .no = 1};
+    s->proc = INVALID_HANDLE;
     s->o[0] = *obj;
     s->o[0].id = 0;
     s->o[0].hot_detail = 0;
@@ -304,6 +306,7 @@ static msess *add_session(Handle srv, Handle fwd, int svc, u64 program, u64 pid,
 static void close_session(int i, const char *why) {
     msess *s = &M.s[i];
     log_printf("%s: session closed (%s), %d left", obj_label(s, &s->o[0]), why, M.n - 1);
+    if (s->proc != INVALID_HANDLE) svcCloseHandle(s->proc);
     svcCloseHandle(s->srv);
     if (s->fwd != INVALID_HANDLE) svcCloseHandle(s->fwd);
     M.s[i] = M.s[--M.n];
@@ -313,7 +316,7 @@ static void close_session(int i, const char *why) {
 // PID goes along tagged, and its receive list is pointed at our buffer (the reply's statics land there
 // and the kernel copies them on to the client when we reply). Copy handles the client sent were
 // copied into our table: closed after forwarding.
-static Result forward(msess *s) {
+static Result forward(msess *s, Handle *keep) {
     void *base = tls();
     HipcParsedRequest p = hipcParseRequest(base);
     if (p.meta.send_pid) {
@@ -332,7 +335,10 @@ static Result forward(msess *s) {
     u32 nc = p.meta.num_copy_handles < 8 ? p.meta.num_copy_handles : 8;
     for (u32 i = 0; i < nc; i++) copies[i] = p.data.copy_handles[i];
     Result rc = svcSendSyncRequest(s->fwd);
-    for (u32 i = 0; i < nc; i++) svcCloseHandle(copies[i]);
+    for (u32 i = 0; i < nc; i++) {
+        if (keep && i == 0 && *keep == INVALID_HANDLE) *keep = copies[0];
+        else svcCloseHandle(copies[i]);
+    }
     return rc;
 }
 
@@ -467,12 +473,18 @@ static void rewrite_ctrl_data(msess *s, objst *o, size_t len) {
     rc = svcReadDebugProcessMemory(buf, d, o->ctrl_buf, n);
     rw_notes notes;
     int changed = R_SUCCEEDED(rc) ? rewrite_config(buf, n, rules, &notes) : 0;
-    Result wr = 0, rr = 0;
+    Result wr = 0, rr = 0, fl = 0;
     bool same = false;
     if (changed) {
         wr = svcWriteDebugProcessMemory(d, buf, o->ctrl_buf, n);
         if (R_SUCCEEDED(wr)) rr = svcReadDebugProcessMemory(check, d, o->ctrl_buf, n);
         same = R_SUCCEEDED(wr) && R_SUCCEEDED(rr) && !memcmp(buf, check, n);
+        // The written bytes may still sit in the CPU cache only. The audio sysmodule invalidates its
+        // buffer before parsing a DMA'd answer, which would drop them: it then saw 0x0402 again and
+        // did not take the earphone (0.2.2-0.3.2 with read_ctrl_data=0, mostly at the first plug-in).
+        // So clean them out to memory now.
+        if (R_SUCCEEDED(wr) && s->proc != INVALID_HANDLE) fl = svcFlushProcessDataCache(s->proc, o->ctrl_buf, n);
+        else fl = MAKERESULT(Module_Libnx, LibnxError_NotInitialized);
     }
     svcCloseHandle(d);
     if (R_FAILED(rc)) {
@@ -488,8 +500,8 @@ static void rewrite_ctrl_data(msess *s, objst *o, size_t len) {
     }
     for (int k = 0; k < notes.n; k++) log_printf("     rewrite: %s", notes.text[k]);
     if (same) M.rewrites++;
-    log_printf("     rewrite (%s): %d field(s) written to audio's buffer: %s", names, changed,
-               R_FAILED(wr) ? rc_str(wr) : same ? "OK, read back the same" : "written, but the read-back differs");
+    log_printf("     rewrite (%s): %d field(s) written to audio's buffer: %s, cache flush %s", names, changed,
+               R_FAILED(wr) ? rc_str(wr) : same ? "OK, read back the same" : "written, but the read-back differs", rc_str(fl));
 }
 
 // Interfaces an intercepted client must not see: the remote's HID interfaces for hid (this
@@ -746,7 +758,10 @@ static bool handle_request(int i) {
     // isochronous start frame ~13 ms ahead, and v0.2.0 made them miss it by waiting for the SD card.
     if (!hot) trace_sync();
 
-    Result rc = forward(s);
+    // BindClientProcess hands the usb sysmodule the client's process handle: keep our copy of it,
+    // for flushing the descriptor rewrite out of the CPU cache (rewrite_ctrl_data).
+    bool bind = request && o->kind == OBJ_ROOT && cmd == 0 && p.meta.num_copy_handles >= 1 && s->proc == INVALID_HANDLE;
+    Result rc = forward(s, bind ? &s->proc : NULL);
     if (R_FAILED(rc)) {
         M.failures++;
         log_printf("%s: forwarding failed: %s", obj_label(s, o), rc_str(rc));
