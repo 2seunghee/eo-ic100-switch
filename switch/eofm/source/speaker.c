@@ -17,6 +17,9 @@ static struct {
     bool          audin_ok, audout_ok, audctl_ok;
     Event         ev;              // buffer event of the reopened input
     u32           in_data_size;    // the input buffer size the USB microphone accepted
+    Event         uac_ev;          // signalled by the audio service when a USB input buffer is done
+    bool          uac_ev_ok;
+    int           append_cmd;      // IAudioIn command that the input accepted (10 or 7), 0 = not yet
     bool          ev_ok;
     AudioInBuffer in[N_IN];
     AudioOutBuffer out[N_OUT];
@@ -133,12 +136,15 @@ static void play(const AudioInBuffer *in) {
 // the default input it opened first; this one is registered on the reopened input (S.ev). Without
 // it the pump polls. 0.1.3 on the console got no buffer back at all (while the audio sysmodule did
 // stream the microphone), so every step is logged.
+static Result uac_append(AudioInBuffer *b);
+
 static void pump(void *arg) {
     u64 last_ok = now_ms(), last_report = now_ms();
     u32 polls = 0, fails = 0;
     Result last_rc = 0;
     while (!S.stop) {
-        if (S.ev_ok) eventWait(&S.ev, 20000000ULL);
+        if (S.uac_ev_ok) eventWait(&S.uac_ev, 20000000ULL);
+        else if (S.ev_ok) eventWait(&S.ev, 20000000ULL);
         AudioInBuffer *rel = NULL;
         u32 n = 0;
         Result rc = audinGetReleasedAudioInBuffer(&rel, &n);
@@ -162,12 +168,36 @@ static void pump(void *arg) {
             track_peak(rel->buffer, rel->data_size / 2);
             play(rel);
             rel->data_size = S.in_data_size;
-            audinAppendAudioInBuffer(rel);
+            uac_append(rel);
             rel = NULL;
             n = 0;
             audinGetReleasedAudioInBuffer(&rel, &n);
         }
     }
+}
+
+// A USB microphone ("UacIn") does not take buffers through AppendAudioInBuffer(Auto): every size
+// came back 2153-0008 (0.1.5 on the console). It has its own commands, which also take an event the
+// service signals when a buffer is done: [3.0.0+] 10 AppendUacInBufferAuto, 7 AppendUacInBuffer
+// (u64 tag, copy handle, the AudioInBuffer). libnx has neither, so they are sent here.
+static Result uac_append(AudioInBuffer *b) {
+    u64 tag = (u64)(uintptr_t)b;
+    Service *srv = audinGetServiceSession_AudioIn();
+    int cmds[2] = {10, 7};
+    Result rc = 0;
+    for (int i = 0; i < 2; i++) {
+        int cmd = S.append_cmd ? S.append_cmd : cmds[i];
+        rc = serviceDispatchIn(srv, cmd, tag,
+                               .buffer_attrs = {(cmd == 10 ? SfBufferAttr_HipcAutoSelect : SfBufferAttr_HipcMapAlias) | SfBufferAttr_In},
+                               .buffers = {{b, sizeof(*b)}}, .in_num_handles = 1, .in_handles = {S.uac_ev.wevent});
+        if (!S.append_cmd) log_file("speaker: AppendUacInBuffer%s (cmd %d): %s\n", cmd == 10 ? "Auto" : "", cmd, rc_str(rc));
+        if (R_SUCCEEDED(rc)) {
+            S.append_cmd = cmd;
+            return rc;
+        }
+        if (S.append_cmd) return rc;
+    }
+    return rc;
 }
 
 static void free_buffers(void) {
@@ -236,6 +266,10 @@ bool spk_start(void) {
     if (S.ev_ok) eventLoadRemote(&S.ev, evh, true);
     log_file("speaker: buffer event: %s\n", rc_str(rc));
 
+    S.append_cmd = 0;
+    S.uac_ev_ok = R_SUCCEEDED(eventCreate(&S.uac_ev, true));
+    if (!S.uac_ev_ok) log_file("speaker: could not create the USB input event\n");
+
     move_output();
 
     rc = audoutInitialize();
@@ -263,7 +297,7 @@ bool spk_start(void) {
     for (size_t i = 0; i < sizeof(sizes) / sizeof(sizes[0]) && pick < 0; i++) {
         S.in[0] = (AudioInBuffer){.next = NULL, .buffer = S.mem[0], .buffer_size = sizes[i].buffer_size,
                                   .data_size = sizes[i].data_size};
-        Result ra = audinAppendAudioInBuffer(&S.in[0]);
+        Result ra = uac_append(&S.in[0]);
         log_file("speaker: input buffer %u/%u bytes: %s\n", sizes[i].buffer_size, sizes[i].data_size, rc_str(ra));
         if (R_SUCCEEDED(ra)) pick = (int)i;
     }
@@ -276,7 +310,7 @@ bool spk_start(void) {
     for (int k = 1; k < N_IN; k++) {
         S.in[k] = (AudioInBuffer){.next = NULL, .buffer = S.mem[k], .buffer_size = sizes[pick].buffer_size,
                                   .data_size = sizes[pick].data_size};
-        Result ra = audinAppendAudioInBuffer(&S.in[k]);
+        Result ra = uac_append(&S.in[k]);
         if (R_FAILED(ra)) log_file("speaker: append input buffer %d: %s\n", k, rc_str(ra));
     }
     for (int k = 0; k < N_OUT; k++) {
@@ -313,6 +347,10 @@ void spk_stop(void) {
         threadWaitForExit(&S.thread);
         threadClose(&S.thread);
         S.st.running = false;
+    }
+    if (S.uac_ev_ok) {
+        eventClose(&S.uac_ev);
+        S.uac_ev_ok = false;
     }
     if (S.ev_ok) {
         eventClose(&S.ev);
