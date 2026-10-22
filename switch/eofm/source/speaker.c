@@ -15,6 +15,8 @@ static struct {
     Mutex         lock;
     spk_status    st;
     bool          audin_ok, audout_ok, audctl_ok;
+    Event         ev;              // buffer event of the reopened input
+    bool          ev_ok;
     AudioInBuffer in[N_IN];
     AudioOutBuffer out[N_OUT];
     bool          out_busy[N_OUT];
@@ -126,21 +128,32 @@ static void play(const AudioInBuffer *in) {
     mutexUnlock(&S.lock);
 }
 
-// Polls for captured buffers: after the input is reopened on the earphone's microphone, libnx's
-// buffer event still belongs to the default input it opened first, so it never fires.
+// After the input is reopened on the earphone's microphone, libnx's buffer event still belongs to
+// the default input it opened first; this one is registered on the reopened input (S.ev). Without
+// it the pump polls. 0.1.3 on the console got no buffer back at all (while the audio sysmodule did
+// stream the microphone), so every step is logged.
 static void pump(void *arg) {
     u64 last_ok = now_ms(), last_report = now_ms();
+    u32 polls = 0, fails = 0;
+    Result last_rc = 0;
     while (!S.stop) {
+        if (S.ev_ok) eventWait(&S.ev, 20000000ULL);
         AudioInBuffer *rel = NULL;
         u32 n = 0;
         Result rc = audinGetReleasedAudioInBuffer(&rel, &n);
+        polls++;
+        if (R_FAILED(rc)) fails++, last_rc = rc;
         if (now_ms() - last_report >= 5000) {
             last_report = now_ms();
-            log_file("speaker: %.1f s played, peak %d dBFS, %u dropped\n", S.st.frames / 48000.0, S.st.peak_db, S.st.dropped);
+            AudioInState st = AudioInState_Stopped;
+            Result rs = audinGetAudioInState(&st);
+            log_file("speaker: %.1f s played, peak %d dBFS, %u dropped; %u polls, %u failed (last %s), input state %d (%s)\n",
+                     S.st.frames / 48000.0, S.st.peak_db, S.st.dropped, polls, fails, fails ? rc_str(last_rc) : "-", st,
+                     rc_str(rs));
         }
         if (R_FAILED(rc) || !n || !rel) {
             if (now_ms() - last_ok > 3000 && !S.st.error[0]) set_error("no audio from the USB microphone for 3 s", 0);
-            svcSleepThread(2000000ULL);
+            if (!S.ev_ok) svcSleepThread(2000000ULL);
             continue;
         }
         while (rel && n) {
@@ -199,7 +212,7 @@ bool spk_start(void) {
     u32 rate = 0, ch = 0;
     PcmFormat fmt = PcmFormat_Invalid;
     AudioInState ast;
-    rc = audinOpenAudioIn(names[uac], opened, 48000, 2, &rate, &ch, &fmt, &ast);
+    rc = audinOpenAudioIn(names[uac], opened, 48000, 0x00020000, &rate, &ch, &fmt, &ast);   // libnx's own default value
     log_file("speaker: open %s: %s -> %.255s, %u Hz, %u ch, format %d\n", names[uac], rc_str(rc), opened, rate, ch, fmt);
     S.st.in_rate = rate;
     S.st.in_channels = ch;
@@ -215,6 +228,12 @@ bool spk_start(void) {
         S.audin_ok = false;
         return false;
     }
+    Handle evh = INVALID_HANDLE;   // IAudioIn RegisterBufferEvent (cmd 4), as libnx does for its first input
+    rc = serviceDispatch(audinGetServiceSession_AudioIn(), 4, .out_handle_attrs = {SfOutHandleAttr_HipcCopy},
+                         .out_handles = &evh);
+    S.ev_ok = R_SUCCEEDED(rc);
+    if (S.ev_ok) eventLoadRemote(&S.ev, evh, true);
+    log_file("speaker: buffer event: %s\n", rc_str(rc));
 
     move_output();
 
@@ -236,7 +255,8 @@ bool spk_start(void) {
     }
     for (int k = 0; k < N_IN; k++) {
         S.in[k] = (AudioInBuffer){.next = NULL, .buffer = S.mem[k], .buffer_size = BUF_SIZE, .data_size = FRAMES * 4};
-        audinAppendAudioInBuffer(&S.in[k]);
+        Result ra = audinAppendAudioInBuffer(&S.in[k]);
+        if (k == 0 || R_FAILED(ra)) log_file("speaker: append input buffer %d: %s\n", k, rc_str(ra));
     }
     for (int k = 0; k < N_OUT; k++) {
         S.out[k] = (AudioOutBuffer){.next = NULL, .buffer = S.mem[N_IN + k], .buffer_size = BUF_SIZE, .data_size = 0};
@@ -272,6 +292,10 @@ void spk_stop(void) {
         threadWaitForExit(&S.thread);
         threadClose(&S.thread);
         S.st.running = false;
+    }
+    if (S.ev_ok) {
+        eventClose(&S.ev);
+        S.ev_ok = false;
     }
     if (S.audin_ok) {
         audinStopAudioIn();
