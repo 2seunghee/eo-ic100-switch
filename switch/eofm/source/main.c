@@ -359,8 +359,12 @@ static bool read_event(fm_event *e) {
 }
 
 static void start_seek(int dir) {
-    // Phase 0: tune where we are, so that the receiver's latest event is a tune result; phase 1:
-    // seek, and the first seek result after that is this seek's.
+    // Phase 0: tune one step away, so that the receiver's latest event is a tune result for a new
+    // frequency (an old one with the same frequency would pass for fresh) and the seek does not
+    // stop on the station it starts from (0.1.4: "found 10470 after 33 ms", over and over);
+    // phase 1: seek, and the first seek result after that is this seek's.
+    int f = (int)R.freq + dir * reg()->step;
+    R.freq = (u16)(f < reg()->min ? reg()->max : f > reg()->max ? reg()->min : f);
     fm_set(&R.dev, FM_SET_CHANNEL, R.freq);
     R.seeking = true;
     R.seek_dir = dir;
@@ -377,6 +381,21 @@ static void seek(int dir) {
     }
     if (R.seeking || R.scanning) {
         stop_seek();
+        return;
+    }
+    // With a channel list from 채널 찾기, go to its next station at once; seek only without one.
+    if (R.nch) {
+        int k = -1;
+        if (dir > 0) {
+            for (int i = 0; i < R.nch && k < 0; i++)
+                if (R.ch[i] > R.freq) k = i;
+            if (k < 0) k = 0;
+        } else {
+            for (int i = R.nch - 1; i >= 0 && k < 0; i--)
+                if (R.ch[i] < R.freq) k = i;
+            if (k < 0) k = R.nch - 1;
+        }
+        tune(R.ch[k]);
         return;
     }
     start_seek(dir);
@@ -400,6 +419,9 @@ static void seek_poll(void) {
                  (unsigned long long)t);
         if (e.freq >= 6400 && e.freq <= 10800) R.freq = e.freq;
         R.rssi = e.strength;
+        // Tune there once more: it ends the receiver's seek state, which distorted the sound in
+        // 0.1.4 when seeks followed one another.
+        fm_set(&R.dev, FM_SET_CHANNEL, R.freq);
         R.rssi_logged = R.freq;
         if (!e.ok) say("방송을 찾지 못했습니다.");
         return;

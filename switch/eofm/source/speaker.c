@@ -16,6 +16,7 @@ static struct {
     spk_status    st;
     bool          audin_ok, audout_ok, audctl_ok;
     Event         ev;              // buffer event of the reopened input
+    u32           in_data_size;    // the input buffer size the USB microphone accepted
     bool          ev_ok;
     AudioInBuffer in[N_IN];
     AudioOutBuffer out[N_OUT];
@@ -160,7 +161,7 @@ static void pump(void *arg) {
             last_ok = now_ms();
             track_peak(rel->buffer, rel->data_size / 2);
             play(rel);
-            rel->data_size = rel->buffer_size;
+            rel->data_size = S.in_data_size;
             audinAppendAudioInBuffer(rel);
             rel = NULL;
             n = 0;
@@ -253,10 +254,30 @@ bool spk_start(void) {
         }
         memset(S.mem[k], 0, BUF_SIZE);
     }
-    for (int k = 0; k < N_IN; k++) {
-        S.in[k] = (AudioInBuffer){.next = NULL, .buffer = S.mem[k], .buffer_size = BUF_SIZE, .data_size = FRAMES * 4};
+    // The USB input refused 1024-frame buffers with 2153-0008 (0.1.4 on the console). It runs in
+    // 5 ms periods (240 frames), so try sizes that are whole periods; the first one it takes is used.
+    static const struct {
+        u32 buffer_size, data_size;
+    } sizes[] = {{3840, 3840}, {4096, 3840}, {1920, 1920}, {960, 960}, {7680, 7680}, {4096, 4096}};
+    int pick = -1;
+    for (size_t i = 0; i < sizeof(sizes) / sizeof(sizes[0]) && pick < 0; i++) {
+        S.in[0] = (AudioInBuffer){.next = NULL, .buffer = S.mem[0], .buffer_size = sizes[i].buffer_size,
+                                  .data_size = sizes[i].data_size};
+        Result ra = audinAppendAudioInBuffer(&S.in[0]);
+        log_file("speaker: input buffer %u/%u bytes: %s\n", sizes[i].buffer_size, sizes[i].data_size, rc_str(ra));
+        if (R_SUCCEEDED(ra)) pick = (int)i;
+    }
+    if (pick >= 0) S.in_data_size = sizes[pick].data_size;
+    if (pick < 0) {
+        set_error("the USB microphone takes none of the buffer sizes tried", 0);
+        spk_stop();
+        return false;
+    }
+    for (int k = 1; k < N_IN; k++) {
+        S.in[k] = (AudioInBuffer){.next = NULL, .buffer = S.mem[k], .buffer_size = sizes[pick].buffer_size,
+                                  .data_size = sizes[pick].data_size};
         Result ra = audinAppendAudioInBuffer(&S.in[k]);
-        if (k == 0 || R_FAILED(ra)) log_file("speaker: append input buffer %d: %s\n", k, rc_str(ra));
+        if (R_FAILED(ra)) log_file("speaker: append input buffer %d: %s\n", k, rc_str(ra));
     }
     for (int k = 0; k < N_OUT; k++) {
         S.out[k] = (AudioOutBuffer){.next = NULL, .buffer = S.mem[N_IN + k], .buffer_size = BUF_SIZE, .data_size = 0};
