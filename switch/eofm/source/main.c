@@ -312,7 +312,16 @@ static void radio_on(void) {
     }
 }
 
+// Speaker output is switched off for now: eofm 0.1.6 sent AppendUacInBuffer to the USB microphone
+// input and the audio sysmodule crashed (fatal 2003-0501 in 0100000000000014). Until that command's
+// format is known, the earphone output is the only one.
+#define SPEAKER_OUTPUT_ENABLED 0
+
 static void set_output(int out) {
+    if (out == OUT_SPEAKER && !SPEAKER_OUTPUT_ENABLED) {
+        say("스피커로 듣기는 아직 준비 중입니다.");
+        return;
+    }
     R.output = out;
     if (R.mode != MODE_OFF || out == OUT_SPEAKER || R.enum_mic_only) radio_on();   // re-enumerates if needed
     else say("이어폰으로 듣기");
@@ -538,6 +547,15 @@ static void sync_from_device(void) {
     fm_get(&R.dev, FM_GET_RECORDING, r);
     fm_get(&R.dev, FM_GET_PROTOCOL, proto);
     log_file("fm: power %u, recording %u, protocol %u.%u\n", p[0], r[0], proto[0], proto[1]);
+    if (R.enum_mic_only && !R.pending_on) {
+        // A leftover override (a crash during speaker output): the console does not use the
+        // earphone as its output. Put it back now, before anything else.
+        set_override(false);
+        R.enum_mic_only = false;
+        say("이어폰을 스위치 출력으로 되돌리는 중... 이어폰이 다시 연결됩니다.");
+        reenumerate();
+        return;
+    }
     if (R.pending_on) {
         R.pending_on = false;
         radio_on();
@@ -877,6 +895,7 @@ int main(int argc, char **argv) {
     // A leftover override (a crash in speaker output) keeps the earphone a microphone-only device:
     // treat it as such, so that switching on in earphone output undoes it.
     R.enum_mic_only = override_present();
+    if (!SPEAKER_OUTPUT_ENABLED) R.output = OUT_EARPHONE;
 
     Result rc = usbHsInitialize();
     if (R_FAILED(rc)) say("usb:hs를 열 수 없습니다 (%s).", rc_str(rc));

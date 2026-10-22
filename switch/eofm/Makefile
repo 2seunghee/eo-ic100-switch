@@ -46,7 +46,7 @@ INCLUDES	:=	include
 
 APP_TITLE	:=	EO-IC100 FM Radio
 APP_AUTHOR	:=	eo-ic100-switch
-APP_VERSION	:=	0.1.6
+APP_VERSION	:=	0.1.7
 
 #---------------------------------------------------------------------------------
 # options for code generation
