@@ -24,6 +24,7 @@ void config_defaults(lm_config *c) {
     c->buf_dump = 64;
     c->log_keep = 20;
     c->rewrite = RW_TERMINAL;
+    c->remote = true;
 }
 
 static void trim(char **s, char **e) {
@@ -143,6 +144,8 @@ int config_parse(lm_config *c, const char *text, void (*warn)(const char *)) {
         } else if (!strcmp(ks, "log_keep")) {
             if (parse_int(vs, 1, 200, &n)) c->log_keep = n;
             else problems += report(warn, line_no, "log_keep: not 1..200", vs);
+        } else if (!strcmp(ks, "remote")) {
+            if (!parse_bool(vs, &c->remote)) problems += report(warn, line_no, "remote: not 0/1", vs);
         } else if (!strcmp(ks, "rewrite")) {
             const char *bad = NULL;
             unsigned r;

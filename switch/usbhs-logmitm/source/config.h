@@ -20,6 +20,7 @@ typedef struct {
     int      buf_dump;           // bytes of each IPC buffer dumped as hex
     int      log_keep;           // log files kept
     unsigned rewrite;            // RW_* rules applied to the EO-IC100's config descriptor (rewrite.h)
+    bool     remote;             // read the earphone's remote buttons (hides them from hid; needs programs=...,hid)
 } lm_config;
 
 void config_defaults(lm_config *c);

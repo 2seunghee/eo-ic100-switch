@@ -3,42 +3,64 @@
 #include <math.h>
 
 #include "log.h"
+#include "usbio.h"
 
-#define FRAMES   1024   // per buffer: 21.3 ms at 48 kHz
-#define BUF_SIZE ALIGN_UP(FRAMES * 4, 0x1000)
-#define N_IN     4
-#define N_OUT    6
+// Speaker output, second design. The first one went through the system audio input (audin) and
+// ended in a fatal error of the audio sysmodule (eofm 0.1.6). Now usbhs-logmitm hides the whole
+// earphone from the audio sysmodule (rewrite_override.txt = "hide"), so:
+//  - the console has no USB output and plays on its speaker;
+//  - the earphone's microphone interface (IF1) is free: this file takes it, sets 48 kHz and reads
+//    the isochronous IN endpoint 0x83 itself, the same way the audio sysmodule does it (batches of
+//    5 urbs x 192 bytes = 1 ms each, scheduled by absolute USB frame numbers: approach A, read side);
+//  - the PCM goes to audout through a small ring.
+
+#define PKT        192      // 1 ms of 48 kHz 16-bit stereo
+#define UPB        5        // urbs per batch
+#define NB         4        // batches in flight (20 ms)
+#define SLOT       0x1000
+#define FRAME_LEAD 16
+#define RING       (48000 / 2)   // frames (0.5 s)
+#define OUT_FRAMES 960           // 20 ms per audout buffer
+#define OUT_SIZE   0x1000
+#define N_OUT      6
+#define TARGET_FILL (48000 * 60 / 1000)   // keep ~60 ms queued in the ring
+#define RC_FRAME_WINDOW 0xD28C
+
+typedef struct {
+    bool busy;
+    u64  id;
+    u32  reports;
+    u32  got[UPB];
+} batch;
 
 static struct {
-    Thread        thread;
-    volatile bool stop;
     Mutex         lock;
     spk_status    st;
-    bool          audin_ok, audout_ok, audctl_ok;
-    Event         ev;              // buffer event of the reopened input
-    u32           in_data_size;    // the input buffer size the USB microphone accepted
-    Event         uac_ev;          // signalled by the audio service when a USB input buffer is done
-    bool          uac_ev_ok;
-    int           append_cmd;      // IAudioIn command that the input accepted (10 or 7), 0 = not yet
-    bool          ev_ok;
-    AudioInBuffer in[N_IN];
+    // USB side
+    UsbHsClientIfSession ifs;
+    bool          if_ok, ep_ok;
+    UsbHsClientEpSession ep;
+    struct usb_endpoint_descriptor epd;
+    u8           *region;
+    batch         b[NB];
+    u32           urbs[UPB];
+    u32           frame_next;
+    u64           seq;
+    // ring of stereo frames between the capture and the output
+    int16_t       ring[RING * 2];
+    u32           wpos, rpos;   // free-running frame counters
+    // output side
+    bool          audout_ok, audctl_ok;
     AudioOutBuffer out[N_OUT];
     bool          out_busy[N_OUT];
-    void         *mem[N_IN + N_OUT];
+    void         *out_mem[N_OUT];
+    // threads
+    Thread        cap_thread, play_thread;
+    bool          cap_ok, play_ok;
+    volatile bool stop;
     int16_t       peak;
     u64           peak_since;
 } S;
-
-static const char *target_name(AudioTarget t) {
-    switch (t) {
-        case AudioTarget_Speaker:         return "speaker";
-        case AudioTarget_Headphone:       return "headphone jack";
-        case AudioTarget_Tv:              return "TV";
-        case AudioTarget_UsbOutputDevice: return "USB";
-        case AudioTarget_Bluetooth:       return "Bluetooth";
-        default:                          return "?";
-    }
-}
 
 static void set_error(const char *msg, Result rc) {
     mutexLock(&S.lock);
@@ -47,165 +69,234 @@ static void set_error(const char *msg, Result rc) {
     log_file("speaker: %s\n", S.st.error);
 }
 
-// Moves the system output to the console speaker while a USB output device is attached. Two
-// audctl calls can do that; which one this firmware honours is only known on the console.
-static void move_output(void) {
-    Result rc = audctlInitialize();
-    S.audctl_ok = R_SUCCEEDED(rc);
-    if (!S.audctl_ok) {
-        log_file("speaker: audctl: %s (output not moved)\n", rc_str(rc));
-        return;
-    }
-    AudioTarget t = AudioTarget_Invalid;
-    rc = audctlGetActiveOutputTarget(&t);
-    S.st.before = S.st.now = t;
-    log_file("speaker: active output %s (%s)\n", target_name(t), rc_str(rc));
-    if (t == AudioTarget_Speaker) return;
-    rc = audctlSetOutputTarget(AudioTarget_Speaker);
-    audctlGetActiveOutputTarget(&t);
-    log_file("speaker: SetOutputTarget(speaker): %s -> active %s\n", rc_str(rc), target_name(t));
-    if (t != AudioTarget_Speaker) {
-        rc = audctlSetDefaultTarget(AudioTarget_Speaker, 0, 0);
-        audctlGetActiveOutputTarget(&t);
-        log_file("speaker: SetDefaultTarget(speaker): %s -> active %s\n", rc_str(rc), target_name(t));
-    }
-    S.st.now = t;
-    S.st.moved_output = t == AudioTarget_Speaker;
-}
-
-static void restore_output(void) {
-    if (!S.audctl_ok) return;
-    if (S.st.moved_output && S.st.before != AudioTarget_Invalid) {
-        Result r1 = audctlSetOutputTarget(S.st.before);
-        Result r2 = audctlSetDefaultTarget(S.st.before, 0, 0);
-        AudioTarget t = AudioTarget_Invalid;
-        audctlGetActiveOutputTarget(&t);
-        log_file("speaker: output back to %s: %s / %s -> active %s\n", target_name(S.st.before), rc_str(r1), rc_str(r2),
-                 target_name(t));
-    }
-    S.st.moved_output = false;
-    audctlExit();
-    S.audctl_ok = false;
-}
-
 static void track_peak(const int16_t *p, size_t samples) {
     for (size_t i = 0; i < samples; i++) {
         int16_t v = p[i] < 0 ? (int16_t)(p[i] == -32768 ? 32767 : -p[i]) : p[i];
         if (v > S.peak) S.peak = v;
     }
     u64 t = now_ms();
-    if (t - S.peak_since >= 1000) {
-        mutexLock(&S.lock);
+    if (t - S.peak_since >= 1000) {   // the caller holds S.lock
         S.st.peak_db = S.peak ? (int)lrintf(20.0f * log10f(S.peak / 32768.0f)) : -99;
-        mutexUnlock(&S.lock);
         S.peak = 0;
         S.peak_since = t;
     }
 }
 
-static void reclaim_out(void) {
-    AudioOutBuffer *rel = NULL;
-    u32 n = 0;
-    while (R_SUCCEEDED(audoutGetReleasedAudioOutBuffer(&rel, &n)) && n && rel) {
-        for (int k = 0; k < N_OUT; k++)
-            if (&S.out[k] == rel) S.out_busy[k] = false;
-        rel = NULL;
-    }
-}
+// ------------------------------------------------------------------ USB capture
 
-static void play(const AudioInBuffer *in) {
-    reclaim_out();
-    for (int k = 0; k < N_OUT; k++) {
-        if (S.out_busy[k]) continue;
-        size_t n = in->data_size < S.out[k].buffer_size ? in->data_size : S.out[k].buffer_size;
-        memcpy(S.out[k].buffer, in->buffer, n);
-        S.out[k].data_size = n;
-        S.out_busy[k] = true;
-        audoutAppendAudioOutBuffer(&S.out[k]);
-        mutexLock(&S.lock);
-        S.st.frames += n / 4;
-        mutexUnlock(&S.lock);
-        return;
-    }
-    mutexLock(&S.lock);
-    S.st.dropped++;
-    mutexUnlock(&S.lock);
-}
-
-// After the input is reopened on the earphone's microphone, libnx's buffer event still belongs to
-// the default input it opened first; this one is registered on the reopened input (S.ev). Without
-// it the pump polls. 0.1.3 on the console got no buffer back at all (while the audio sysmodule did
-// stream the microphone), so every step is logged.
-static Result uac_append(AudioInBuffer *b);
-
-static void pump(void *arg) {
-    u64 last_ok = now_ms(), last_report = now_ms();
-    u32 polls = 0, fails = 0;
-    Result last_rc = 0;
-    while (!S.stop) {
-        if (S.uac_ev_ok) eventWait(&S.uac_ev, 20000000ULL);
-        else if (S.ev_ok) eventWait(&S.ev, 20000000ULL);
-        AudioInBuffer *rel = NULL;
-        u32 n = 0;
-        Result rc = audinGetReleasedAudioInBuffer(&rel, &n);
-        polls++;
-        if (R_FAILED(rc)) fails++, last_rc = rc;
-        if (now_ms() - last_report >= 5000) {
-            last_report = now_ms();
-            AudioInState st = AudioInState_Stopped;
-            Result rs = audinGetAudioInState(&st);
-            log_file("speaker: %.1f s played, peak %d dBFS, %u dropped; %u polls, %u failed (last %s), input state %d (%s)\n",
-                     S.st.frames / 48000.0, S.st.peak_db, S.st.dropped, polls, fails, fails ? rc_str(last_rc) : "-", st,
-                     rc_str(rs));
+static bool find_if1(UsbHsInterface *out) {
+    static UsbHsInterface list[8];
+    UsbHsInterfaceFilter f;
+    memset(&f, 0, sizeof(f));
+    f.Flags = UsbHsInterfaceFilterFlags_idVendor;
+    f.idVendor = TARGET_VID;
+    s32 n = 0;
+    if (R_FAILED(usbHsQueryAvailableInterfaces(&f, list, sizeof(list), &n))) return false;
+    for (s32 i = 0; i < n; i++) {
+        u16 pid = list[i].device_desc.idProduct;
+        if ((pid == 0xA054 || pid == 0xA059 || pid == 0xA05B) && list[i].inf.interface_desc.bInterfaceNumber == 1) {
+            *out = list[i];
+            return true;
         }
-        if (R_FAILED(rc) || !n || !rel) {
-            if (now_ms() - last_ok > 3000 && !S.st.error[0]) set_error("no audio from the USB microphone for 3 s", 0);
-            if (!S.ev_ok) svcSleepThread(2000000ULL);
+    }
+    return false;
+}
+
+static void submit(int bi) {
+    for (int attempt = 0; attempt < 2; attempt++) {
+        u64 id = (S.seq++ << 8) | (u64)bi;
+        u32 xfer = 0;
+        u8 *buf = S.region + (size_t)bi * SLOT;
+        armDCacheFlush(buf, SLOT);
+        Result rc = usbHsEpBatchBufferAsync(&S.ep, buf, S.urbs, UPB, id, 0, S.frame_next & 0x7FF, &xfer);
+        if (R_SUCCEEDED(rc)) {
+            S.frame_next += UPB;
+            S.b[bi] = (batch){.busy = true, .id = id};
+            return;
+        }
+        if (rc != RC_FRAME_WINDOW || attempt) {
+            log_file("speaker: BatchBufferAsync: %s\n", rc_str(rc));
+            break;
+        }
+        u32 cur = 0;   // the start frame is gone: restart from the bus
+        usbHsIfGetCurrentFrame(&S.ifs, &cur);
+        S.frame_next = cur + FRAME_LEAD;
+    }
+    S.b[bi].busy = false;
+}
+
+static void ring_put(const u8 *data, u32 bytes) {
+    u32 frames = bytes / 4;
+    const int16_t *p = (const int16_t *)data;
+    track_peak(p, frames * 2);
+    for (u32 i = 0; i < frames; i++) {
+        if (S.wpos - S.rpos >= RING) S.rpos++;   // full: drop the oldest
+        u32 k = S.wpos % RING;
+        S.ring[2 * k] = p[2 * i];
+        S.ring[2 * k + 1] = p[2 * i + 1];
+        S.wpos++;
+    }
+}
+
+static void cap_loop(void *arg) {
+    UsbHsXferReport reps[32];
+    u64 last_ok = now_ms();
+    u32 cur = 0;
+    usbHsIfGetCurrentFrame(&S.ifs, &cur);
+    S.frame_next = cur + FRAME_LEAD;
+    for (int bi = 0; bi < NB; bi++) submit(bi);
+    while (!S.stop) {
+        if (R_FAILED(eventWait(usbHsEpGetXferEvent(&S.ep), 20000000ULL))) {
+            if (now_ms() - last_ok > 2000 && !S.st.error[0]) set_error("no audio from the earphone for 2 s", 0);
+            for (int bi = 0; bi < NB; bi++)
+                if (!S.b[bi].busy) submit(bi);
             continue;
         }
-        while (rel && n) {
-            last_ok = now_ms();
-            track_peak(rel->buffer, rel->data_size / 2);
-            play(rel);
-            rel->data_size = S.in_data_size;
-            uac_append(rel);
+        eventClear(usbHsEpGetXferEvent(&S.ep));
+        u32 count = 0;
+        if (R_FAILED(usbHsEpGetXferReport(&S.ep, reps, 32, &count))) break;
+        for (u32 k = 0; k < count && k < 32; k++) {
+            int bi = (int)(reps[k].id & 0xFF);
+            if (bi >= NB || !S.b[bi].busy || S.b[bi].id != reps[k].id) continue;
+            batch *b = &S.b[bi];
+            if (b->reports < UPB) b->got[b->reports] = R_SUCCEEDED(reps[k].res) ? reps[k].transferredSize : 0;
+            if (++b->reports < UPB) continue;
+            // the batch is complete: urb i's data is at i * PKT
+            u8 *buf = S.region + (size_t)bi * SLOT;
+            armDCacheFlush(buf, SLOT);
+            u32 total = 0;
+            mutexLock(&S.lock);
+            for (int i = 0; i < UPB; i++) {
+                u32 n = b->got[i] > PKT ? PKT : b->got[i];
+                ring_put(buf + i * PKT, n);
+                total += n;
+            }
+            S.st.frames += total / 4;
+            mutexUnlock(&S.lock);
+            if (total) last_ok = now_ms();
+            b->busy = false;
+            if (!S.stop) submit(bi);
+        }
+    }
+}
+
+static bool usb_open(void) {
+    UsbHsInterface it;
+    if (!find_if1(&it)) {
+        set_error("the earphone's microphone interface is not free (is usbhs-logmitm 0.3.0 installed?)", 0);
+        return false;
+    }
+    Result rc = usbHsAcquireUsbIf(&S.ifs, &it);
+    log_file("speaker: acquire IF1: %s\n", rc_str(rc));
+    if (R_FAILED(rc)) {
+        set_error("taking the microphone interface failed", rc);
+        return false;
+    }
+    S.if_ok = true;
+    rc = usbHsIfSetInterface(&S.ifs, NULL, 1);   // alt 1: 48 kHz 16-bit stereo, EP 0x83
+    log_file("speaker: SetInterface(alt 1): %s\n", rc_str(rc));
+    if (R_FAILED(rc)) {
+        set_error("selecting the microphone's 48 kHz setting failed", rc);
+        return false;
+    }
+    struct usb_endpoint_descriptor *epd = NULL;
+    for (int e = 0; e < 15 && !epd; e++) {
+        struct usb_endpoint_descriptor *x = &S.ifs.inf.inf.input_endpoint_descs[e];
+        if (x->bLength && (x->bmAttributes & USB_TRANSFER_TYPE_MASK) == USB_TRANSFER_TYPE_ISOCHRONOUS) epd = x;
+    }
+    if (!epd) {
+        set_error("no isochronous IN endpoint on the microphone interface", 0);
+        return false;
+    }
+    S.epd = *epd;
+    u8 rate[3] = {0x80, 0xBB, 0x00};   // SET_CUR sampling frequency 48000 on the endpoint
+    rc = usbio_ctrl(&S.ifs, 0x22, 0x01, 0x0100, S.epd.bEndpointAddress, 3, rate, NULL);
+    log_file("speaker: SET_CUR 48000 on EP %02x: %s\n", S.epd.bEndpointAddress, rc_str(rc));
+    rc = usbHsIfOpenUsbEp(&S.ifs, &S.ep, NB * UPB, S.epd.wMaxPacketSize, &S.epd);
+    log_file("speaker: open EP %02x (mps %u): %s\n", S.epd.bEndpointAddress, S.epd.wMaxPacketSize, rc_str(rc));
+    if (R_FAILED(rc)) {
+        set_error("opening the microphone endpoint failed", rc);
+        return false;
+    }
+    S.ep_ok = true;
+    S.region = memalign(0x1000, (size_t)SLOT * NB);
+    if (!S.region) {
+        set_error("out of memory", 0);
+        return false;
+    }
+    memset(S.region, 0, (size_t)SLOT * NB);
+    for (int i = 0; i < UPB; i++) S.urbs[i] = PKT;
+    return true;
+}
+
+static void usb_close(void) {
+    if (S.ep_ok) usbHsEpClose(&S.ep);   // cancels the transfers in flight; only then may the buffers go
+    S.ep_ok = false;
+    free(S.region);
+    S.region = NULL;
+    if (S.if_ok) {
+        usbHsIfSetInterface(&S.ifs, NULL, 0);
+        usbHsIfClose(&S.ifs);
+    }
+    S.if_ok = false;
+}
+
+// ------------------------------------------------------------------ output
+
+static void play_loop(void *arg) {
+    u64 last_report = now_ms();
+    while (!S.stop) {
+        AudioOutBuffer *rel = NULL;
+        u32 n = 0;
+        while (R_SUCCEEDED(audoutGetReleasedAudioOutBuffer(&rel, &n)) && n && rel) {
+            for (int k = 0; k < N_OUT; k++)
+                if (&S.out[k] == rel) S.out_busy[k] = false;
             rel = NULL;
-            n = 0;
-            audinGetReleasedAudioInBuffer(&rel, &n);
+        }
+        int queued = 0, free_k = -1;
+        for (int k = 0; k < N_OUT; k++) {
+            if (S.out_busy[k]) queued++;
+            else if (free_k < 0) free_k = k;
+        }
+        mutexLock(&S.lock);
+        u32 fill = S.wpos - S.rpos;
+        if (fill > TARGET_FILL * 3) S.rpos = S.wpos - TARGET_FILL;   // too far behind the radio: catch up
+        fill = S.wpos - S.rpos;
+        bool take = free_k >= 0 && queued < 3 && fill >= OUT_FRAMES;
+        if (take) {
+            int16_t *o = S.out_mem[free_k];
+            for (u32 i = 0; i < OUT_FRAMES; i++) {
+                u32 k = (S.rpos + i) % RING;
+                o[2 * i] = S.ring[2 * k];
+                o[2 * i + 1] = S.ring[2 * k + 1];
+            }
+            S.rpos += OUT_FRAMES;
+        }
+        mutexUnlock(&S.lock);
+        if (take) {
+            S.out[free_k].data_size = OUT_FRAMES * 4;
+            S.out_busy[free_k] = true;
+            audoutAppendAudioOutBuffer(&S.out[free_k]);
+        } else {
+            svcSleepThread(4000000ULL);
+        }
+        if (now_ms() - last_report >= 5000) {
+            last_report = now_ms();
+            log_file("speaker: %.1f s captured, peak %d dBFS, ring %u frames\n", S.st.frames / 48000.0, S.st.peak_db, fill);
         }
     }
 }
 
-// A USB microphone ("UacIn") does not take buffers through AppendAudioInBuffer(Auto): every size
-// came back 2153-0008 (0.1.5 on the console). It has its own commands, which also take an event the
-// service signals when a buffer is done: [3.0.0+] 10 AppendUacInBufferAuto, 7 AppendUacInBuffer
-// (u64 tag, copy handle, the AudioInBuffer). libnx has neither, so they are sent here.
-static Result uac_append(AudioInBuffer *b) {
-    u64 tag = (u64)(uintptr_t)b;
-    Service *srv = audinGetServiceSession_AudioIn();
-    int cmds[2] = {10, 7};
-    Result rc = 0;
-    for (int i = 0; i < 2; i++) {
-        int cmd = S.append_cmd ? S.append_cmd : cmds[i];
-        rc = serviceDispatchIn(srv, cmd, tag,
-                               .buffer_attrs = {(cmd == 10 ? SfBufferAttr_HipcAutoSelect : SfBufferAttr_HipcMapAlias) | SfBufferAttr_In},
-                               .buffers = {{b, sizeof(*b)}}, .in_num_handles = 1, .in_handles = {S.uac_ev.wevent});
-        if (!S.append_cmd) log_file("speaker: AppendUacInBuffer%s (cmd %d): %s\n", cmd == 10 ? "Auto" : "", cmd, rc_str(rc));
-        if (R_SUCCEEDED(rc)) {
-            S.append_cmd = cmd;
-            return rc;
-        }
-        if (S.append_cmd) return rc;
-    }
-    return rc;
+static void output_target(void) {
+    S.audctl_ok = R_SUCCEEDED(audctlInitialize());
+    AudioTarget t = AudioTarget_Invalid;
+    if (S.audctl_ok) audctlGetActiveOutputTarget(&t);
+    S.st.before = S.st.now = t;
+    S.st.moved_output = false;
+    log_file("speaker: active output target %d\n", t);
 }
 
-static void free_buffers(void) {
-    for (int k = 0; k < N_IN + N_OUT; k++) {
-        free(S.mem[k]);
-        S.mem[k] = NULL;
-    }
-}
+// ------------------------------------------------------------------ public
 
 bool spk_start(void) {
     if (S.st.running) return true;
@@ -214,126 +305,46 @@ bool spk_start(void) {
     S.st.peak_db = -99;
     mutexUnlock(&S.lock);
     S.stop = false;
+    S.wpos = S.rpos = 0;
+    S.seq = 0;
+    memset(S.b, 0, sizeof(S.b));
+    output_target();
 
-    Result rc = audinInitialize();
-    S.audin_ok = R_SUCCEEDED(rc);
-    if (!S.audin_ok) {
-        set_error("audin (system audio input) not available", rc);
+    if (!usb_open()) {
+        spk_stop();
         return false;
     }
-    char names[4][0x100];
-    memset(names, 0, sizeof(names));
-    u32 count = 0;
-    rc = audinListAudioIns(&names[0][0], 4, &count);
-    log_file("speaker: audio inputs (%s): %u\n", rc_str(rc), count);
-    for (u32 i = 0; i < count && i < 4; i++) log_file("speaker:   [%u] %.255s\n", i, names[i]);
-    // libnx opened the default input ("BuiltInHeadset", 0.1.2 on the console); the earphone's
-    // microphone is listed as "Uac_<n>". Reopen on that one.
-    int uac = -1;
-    for (u32 i = 0; i < count && i < 4; i++)
-        if (!strncmp(names[i], "Uac", 3)) uac = (int)i;
-    if (uac < 0) {
-        set_error("the earphone's microphone is not among the audio inputs", 0);
-        audinExit();
-        S.audin_ok = false;
-        return false;
-    }
-    serviceClose(audinGetServiceSession_AudioIn());
-    char opened[0x100] = {0};
-    u32 rate = 0, ch = 0;
-    PcmFormat fmt = PcmFormat_Invalid;
-    AudioInState ast;
-    rc = audinOpenAudioIn(names[uac], opened, 48000, 0x00020000, &rate, &ch, &fmt, &ast);   // libnx's own default value
-    log_file("speaker: open %s: %s -> %.255s, %u Hz, %u ch, format %d\n", names[uac], rc_str(rc), opened, rate, ch, fmt);
-    S.st.in_rate = rate;
-    S.st.in_channels = ch;
-    if (R_FAILED(rc)) {
-        set_error("opening the earphone's microphone failed", rc);
-        audinExit();
-        S.audin_ok = false;
-        return false;
-    }
-    if (S.st.in_rate != 48000 || S.st.in_channels != 2 || fmt != PcmFormat_Int16) {
-        set_error("the audio input is not 48 kHz 16-bit stereo", 0);
-        audinExit();
-        S.audin_ok = false;
-        return false;
-    }
-    Handle evh = INVALID_HANDLE;   // IAudioIn RegisterBufferEvent (cmd 4), as libnx does for its first input
-    rc = serviceDispatch(audinGetServiceSession_AudioIn(), 4, .out_handle_attrs = {SfOutHandleAttr_HipcCopy},
-                         .out_handles = &evh);
-    S.ev_ok = R_SUCCEEDED(rc);
-    if (S.ev_ok) eventLoadRemote(&S.ev, evh, true);
-    log_file("speaker: buffer event: %s\n", rc_str(rc));
-
-    S.append_cmd = 0;
-    S.uac_ev_ok = R_SUCCEEDED(eventCreate(&S.uac_ev, true));
-    if (!S.uac_ev_ok) log_file("speaker: could not create the USB input event\n");
-
-    move_output();
-
-    rc = audoutInitialize();
+    Result rc = audoutInitialize();
     S.audout_ok = R_SUCCEEDED(rc);
     if (!S.audout_ok) {
         set_error("audout (system audio output) not available", rc);
         spk_stop();
         return false;
     }
-    for (int k = 0; k < N_IN + N_OUT; k++) {
-        S.mem[k] = memalign(0x1000, BUF_SIZE);
-        if (!S.mem[k]) {
+    for (int k = 0; k < N_OUT; k++) {
+        S.out_mem[k] = memalign(0x1000, OUT_SIZE);
+        if (!S.out_mem[k]) {
             set_error("out of memory", 0);
             spk_stop();
             return false;
         }
-        memset(S.mem[k], 0, BUF_SIZE);
-    }
-    // The USB input refused 1024-frame buffers with 2153-0008 (0.1.4 on the console). It runs in
-    // 5 ms periods (240 frames), so try sizes that are whole periods; the first one it takes is used.
-    static const struct {
-        u32 buffer_size, data_size;
-    } sizes[] = {{3840, 3840}, {4096, 3840}, {1920, 1920}, {960, 960}, {7680, 7680}, {4096, 4096}};
-    int pick = -1;
-    for (size_t i = 0; i < sizeof(sizes) / sizeof(sizes[0]) && pick < 0; i++) {
-        S.in[0] = (AudioInBuffer){.next = NULL, .buffer = S.mem[0], .buffer_size = sizes[i].buffer_size,
-                                  .data_size = sizes[i].data_size};
-        Result ra = uac_append(&S.in[0]);
-        log_file("speaker: input buffer %u/%u bytes: %s\n", sizes[i].buffer_size, sizes[i].data_size, rc_str(ra));
-        if (R_SUCCEEDED(ra)) pick = (int)i;
-    }
-    if (pick >= 0) S.in_data_size = sizes[pick].data_size;
-    if (pick < 0) {
-        set_error("the USB microphone takes none of the buffer sizes tried", 0);
-        spk_stop();
-        return false;
-    }
-    for (int k = 1; k < N_IN; k++) {
-        S.in[k] = (AudioInBuffer){.next = NULL, .buffer = S.mem[k], .buffer_size = sizes[pick].buffer_size,
-                                  .data_size = sizes[pick].data_size};
-        Result ra = uac_append(&S.in[k]);
-        if (R_FAILED(ra)) log_file("speaker: append input buffer %d: %s\n", k, rc_str(ra));
-    }
-    for (int k = 0; k < N_OUT; k++) {
-        S.out[k] = (AudioOutBuffer){.next = NULL, .buffer = S.mem[N_IN + k], .buffer_size = BUF_SIZE, .data_size = 0};
+        memset(S.out_mem[k], 0, OUT_SIZE);
+        S.out[k] = (AudioOutBuffer){.next = NULL, .buffer = S.out_mem[k], .buffer_size = OUT_SIZE, .data_size = 0};
         S.out_busy[k] = false;
     }
-    // One buffer of silence ahead, so that capture jitter does not starve the output.
-    S.out[0].data_size = FRAMES * 4;
-    S.out_busy[0] = true;
-    audoutAppendAudioOutBuffer(&S.out[0]);
-
-    Result ri = audinStartAudioIn(), ro = audoutStartAudioOut();
-    log_file("speaker: start audin %s, audout %s\n", rc_str(ri), rc_str(ro));
-    if (R_FAILED(ri) || R_FAILED(ro)) {
-        set_error(R_FAILED(ri) ? "starting the audio input failed" : "starting the audio output failed", R_FAILED(ri) ? ri : ro);
-        spk_stop();
-        return false;
-    }
+    rc = audoutStartAudioOut();
+    log_file("speaker: audout start %s\n", rc_str(rc));
     S.peak_since = now_ms();
-    rc = threadCreate(&S.thread, pump, NULL, NULL, 0x4000, 0x2B, -2);
-    if (R_SUCCEEDED(rc)) rc = threadStart(&S.thread);
-    if (R_FAILED(rc)) {
-        set_error("audio thread", rc);
+    rc = threadCreate(&S.cap_thread, cap_loop, NULL, NULL, 0x4000, 0x2A, -2);
+    if (R_SUCCEEDED(rc)) rc = threadStart(&S.cap_thread);
+    S.cap_ok = R_SUCCEEDED(rc);
+    if (S.cap_ok) {
+        rc = threadCreate(&S.play_thread, play_loop, NULL, NULL, 0x4000, 0x2B, -2);
+        if (R_SUCCEEDED(rc)) rc = threadStart(&S.play_thread);
+        S.play_ok = R_SUCCEEDED(rc);
+    }
+    if (!S.cap_ok || !S.play_ok) {
+        set_error("audio threads", rc);
         spk_stop();
         return false;
     }
@@ -342,37 +353,35 @@ bool spk_start(void) {
 }
 
 void spk_stop(void) {
-    if (S.st.running) {
-        S.stop = true;
-        threadWaitForExit(&S.thread);
-        threadClose(&S.thread);
-        S.st.running = false;
+    S.stop = true;
+    if (S.cap_ok) {
+        threadWaitForExit(&S.cap_thread);
+        threadClose(&S.cap_thread);
+        S.cap_ok = false;
     }
-    if (S.uac_ev_ok) {
-        eventClose(&S.uac_ev);
-        S.uac_ev_ok = false;
+    if (S.play_ok) {
+        threadWaitForExit(&S.play_thread);
+        threadClose(&S.play_thread);
+        S.play_ok = false;
     }
-    if (S.ev_ok) {
-        eventClose(&S.ev);
-        S.ev_ok = false;
-    }
-    if (S.audin_ok) {
-        audinStopAudioIn();
-        audinExit();
-        S.audin_ok = false;
-    }
+    usb_close();
     if (S.audout_ok) {
         audoutStopAudioOut();
         audoutExit();
         S.audout_ok = false;
     }
-    restore_output();
-    free_buffers();
-    log_file("speaker: stopped after %llu frames (%u buffers dropped)\n", (unsigned long long)S.st.frames, S.st.dropped);
+    for (int k = 0; k < N_OUT; k++) {
+        free(S.out_mem[k]);
+        S.out_mem[k] = NULL;
+    }
+    if (S.audctl_ok) audctlExit();
+    S.audctl_ok = false;
+    if (S.st.running) log_file("speaker: stopped after %.1f s\n", S.st.frames / 48000.0);
+    S.st.running = false;
 }
 
 void spk_get(spk_status *out) {
-    mutexLock(&S.lock);   // a zeroed Mutex is an unlocked one: fine before the first start
+    mutexLock(&S.lock);
     *out = S.st;
     mutexUnlock(&S.lock);
 }

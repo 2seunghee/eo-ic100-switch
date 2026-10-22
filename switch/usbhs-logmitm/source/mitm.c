@@ -405,16 +405,35 @@ static bool is_eo_ic100(u16 vid, u16 pid) { return vid == 0x04E8 && (pid == 0xA0
 // only while the earphone enumerates.
 #define OVERRIDE_PATH "sdmc:/switch/usbhs-logmitm/rewrite_override.txt"
 
-static unsigned current_rules(bool *overridden) {
-    *overridden = false;
+// The override file's first line, "" without one.
+static void override_text(char *text, size_t size) {
+    text[0] = 0;
     FILE *f = fopen(OVERRIDE_PATH, "rb");
-    if (!f) return M.cfg->rewrite;
-    char text[64] = {0};
-    size_t n = fread(text, 1, sizeof(text) - 1, f);
+    if (!f) return;
+    size_t n = fread(text, 1, size - 1, f);
     fclose(f);
     text[n] = 0;
     for (char *c = text; *c; c++)
         if (*c == '\r' || *c == '\n') *c = 0;
+}
+
+// "hide": the audio sysmodule does not see the EO-IC100 at all (eofm's speaker output takes its
+// microphone itself, and the console plays on its speaker as no USB output exists).
+static bool audio_hidden(void) {
+    char text[64];
+    override_text(text, sizeof(text));
+    return !strcmp(text, "hide");
+}
+
+static unsigned current_rules(bool *overridden) {
+    *overridden = false;
+    char text[64];
+    override_text(text, sizeof(text));
+    if (!text[0]) return M.cfg->rewrite;
+    if (!strcmp(text, "hide")) {
+        *overridden = true;
+        return 0;
+    }
     unsigned rules;
     const char *bad = NULL;
     if (rewrite_parse(text, &rules, &bad) != 0) {
@@ -468,6 +487,40 @@ static void rewrite_ctrl_data(msess *s, objst *o, size_t len) {
     if (same) M.rewrites++;
     log_printf("     rewrite (%s): %d field(s) written to audio's buffer: %s", names, changed,
                R_FAILED(wr) ? rc_str(wr) : same ? "OK, read back the same" : "written, but the read-back differs");
+}
+
+// Interfaces an intercepted client must not see: the remote's HID interfaces for hid (this
+// process reads the buttons itself, remote.c), and the whole earphone for audio while eofm's speaker
+// output wants it.
+static bool hidden_from(const msess *s, const UsbHsInterface *it) {
+    struct usb_device_descriptor dd;
+    memcpy(&dd, &it->device_desc, sizeof(dd));
+    if (!is_eo_ic100(dd.idVendor, dd.idProduct)) return false;
+    if (s->program == PROGRAM_HID) return M.cfg->remote && it->inf.interface_desc.bInterfaceClass == 3;
+    if (s->program == PROGRAM_AUDIO) return audio_hidden();
+    return false;
+}
+
+// Removes hidden interfaces from a Query*Interfaces answer: the list in the client's buffer and
+// the count in the reply.
+static void hide_interfaces(msess *s, objst *o, void *list, size_t size, u8 *count_out) {
+    if (!list || size < sizeof(UsbHsInterface) || !count_out) return;
+    s32 n;
+    memcpy(&n, count_out, 4);
+    size_t max = size / sizeof(UsbHsInterface);
+    if (n < 0 || (size_t)n > max) return;
+    UsbHsInterface *v = list;
+    int kept = 0;
+    for (int i = 0; i < n; i++) {
+        if (hidden_from(s, &v[i])) continue;
+        if (kept != i) memmove(&v[kept], &v[i], sizeof(UsbHsInterface));
+        kept++;
+    }
+    if (kept == n) return;
+    memset(&v[kept], 0, (size_t)(n - kept) * sizeof(UsbHsInterface));
+    s32 k = kept;
+    memcpy(count_out, &k, 4);
+    log_printf("     hidden from %s: %d EO-IC100 interface(s), %d left in the list", program_name(s->program), n - kept, kept);
 }
 
 // ------------------------------------------------------------------ request handling
@@ -717,6 +770,8 @@ static bool handle_request(int i) {
     }
 
     // ---- bookkeeping on the reply
+    if (ok && request && o->kind == OBJ_ROOT && (cmd == 1 || cmd == 2) && rb.nb && out_len >= 4)
+        hide_interfaces(s, o, (void *)rb.b[0].addr, rb.b[0].size, (u8 *)out);
     if (ok && request && o->kind == OBJ_IF && cmd == IF_CTRL_REPORT && o->ctrl_pending) {
         o->ctrl_pending = false;
         const UsbHsXferReport *rep = NULL;

@@ -195,9 +195,10 @@ static void list_insert(u16 *l, int *n, u16 f) {
 
 // Speaker output needs the console to not take the earphone as its audio output, or the system
 // keeps playing to USB whatever audctl is told (eofm 0.1.2 on the console: "SetOutputTarget OK ->
-// active USB"). usbhs-logmitm reads this file when the earphone enumerates and then rewrites only
-// the microphone's terminal type: the earphone comes back as a USB microphone only, and the
-// console plays on its speaker. The earphone is re-enumerated (ResetDevice) to apply it.
+// active USB"). With "hide" in this file, usbhs-logmitm (0.3.0+) leaves the earphone out of the
+// audio sysmodule's interface lists: the console has no USB output and plays on its speaker, and the
+// microphone interface is free for speaker.c. The earphone is re-enumerated (ResetDevice) to apply it.
+// (0.1.3-0.1.6 wrote "it_mic" and went through audin, which crashed the audio sysmodule.)
 #define OVERRIDE_PATH "sdmc:/switch/usbhs-logmitm/rewrite_override.txt"
 
 static bool override_present(void) {
@@ -210,13 +211,13 @@ static void set_override(bool mic_only) {
     if (mic_only) {
         FILE *f = fopen(OVERRIDE_PATH, "wb");
         if (f) {
-            fputs("it_mic\n", f);
+            fputs("hide\n", f);
             fclose(f);
         }
     } else {
         remove(OVERRIDE_PATH);
     }
-    log_file("override: %s\n", mic_only ? "microphone only (speaker output)" : "removed (earphone is the output)");
+    log_file("override: %s\n", mic_only ? "hide the earphone from audio (speaker output)" : "removed (earphone is the output)");
 }
 
 // Re-enumerates the earphone so that the audio sysmodule reads its descriptors again. The receiver
@@ -312,10 +313,10 @@ static void radio_on(void) {
     }
 }
 
-// Speaker output is switched off for now: eofm 0.1.6 sent AppendUacInBuffer to the USB microphone
-// input and the audio sysmodule crashed (fatal 2003-0501 in 0100000000000014). Until that command's
-// format is known, the earphone output is the only one.
-#define SPEAKER_OUTPUT_ENABLED 0
+// Speaker output was switched off in 0.1.7 after the audin path crashed the audio sysmodule
+// (fatal 2003-0501 in 0100000000000014, 0.1.6). 0.2.0 reads the microphone over USB itself
+// (speaker.c) and never touches audin.
+#define SPEAKER_OUTPUT_ENABLED 1
 
 static void set_output(int out) {
     if (out == OUT_SPEAKER && !SPEAKER_OUTPUT_ENABLED) {

@@ -13,6 +13,7 @@
 #include "config.h"
 #include "log.h"
 #include "mitm.h"
+#include "remote.h"
 #include "rewrite.h"
 
 #define INNER_HEAP_SIZE 0x60000   // thread stacks (2 x 16 KiB), stdio, the config text
@@ -70,8 +71,8 @@ static void log_config(const lm_config *c) {
     char rw[80];
     rewrite_names(c->rewrite, rw, sizeof(rw));
     log_printf("config: enabled=%d services=%s programs=%sread_ctrl_data=%d sync=%d hot_detail=%d buf_dump=%d log_keep=%d "
-               "rewrite=%s",
-               c->enabled, svcs, progs, c->read_ctrl_data, c->sync, c->hot_detail, c->buf_dump, c->log_keep, rw);
+               "rewrite=%s remote=%d",
+               c->enabled, svcs, progs, c->read_ctrl_data, c->sync, c->hot_detail, c->buf_dump, c->log_keep, rw, c->remote);
 }
 
 int main(int argc, char **argv) {
@@ -102,6 +103,7 @@ int main(int argc, char **argv) {
     log_config(&cfg);
     log_printf("%d of %d service(s) intercepted. Log: %s", installed, cfg.n_services, log_path());
     log_sync();
+    if (cfg.enabled && cfg.remote) remote_start();
 
     // The mitm thread does the work. This process never exits on its own: an intercepted client's
     // sessions end with it, and the audio sysmodule would not survive that.
