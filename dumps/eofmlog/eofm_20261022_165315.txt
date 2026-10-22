@@ -1,0 +1,9 @@
+===== eofm 0.1.4  2026-10-22 16:53:15  HOS 22.1.0 =====
+usbHsInitialize: OK, region kr, freq 10550
+fm: earphone 04e8:a05b seen (device 12), waiting 6000 ms
+ui: 이어폰을 준비하는 중입니다. 잠시 후 다시 누르세요.
+ui: 이어폰을 준비하는 중입니다. 잠시 후 다시 누르세요.
+fm: acquire IF0 (id 1344536576, device 12): OK
+fm: power 0, recording 0, protocol 1.7
+exit: radio off
+fm: released IF0 (id 1344536576)

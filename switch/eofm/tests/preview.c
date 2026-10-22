@@ -14,10 +14,7 @@ void fm_close(fm_dev *d) {}
 Result fm_set(fm_dev *d, u16 cmd, u16 value) { return 0; }
 Result fm_get(fm_dev *d, u16 cmd, u8 out[2]) { return out[0] = out[1] = 0; }
 Result fm_query(fm_dev *d, u8 out[12], u32 *got) { return *got = 0; }
-static spk_status g_spk;
-bool spk_start(void) { return true; }
-void spk_stop(void) {}
-void spk_get(spk_status *out) { *out = g_spk; }
+Result fm_reset(fm_dev *d) { return 0; }
 void log_init(void) {}
 void log_exit(void) {}
 const char *log_path(void) { return "-"; }
@@ -60,14 +57,11 @@ int main(int argc, char **argv) {
     rds_group(&R.rd, g0), rds_group(&R.rd, g1), rds_group(&R.rd, g2), rds_group(&R.rd, g3);
     shot("preview_on.ppm");
 
-    R.mode = MODE_SPEAKER;
-    R.output = OUT_SPEAKER;
     R.tab = TAB_FAV;
-    g_spk = (spk_status){.running = true, .now = AudioTarget_Speaker, .moved_output = true, .frames = 48000 * 75, .peak_db = -14};
     rds_reset(&R.rd);
     R.scanning = true;
     R.nch = 5;
-    shot("preview_speaker_scan.ppm");
+    shot("preview_scan.ppm");
     gfx_exit();
     return 0;
 }

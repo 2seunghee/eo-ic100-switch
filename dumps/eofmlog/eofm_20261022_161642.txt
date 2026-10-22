@@ -1,0 +1,24 @@
+===== eofm 0.1.0  2026-10-22 16:16:42  HOS 22.1.0 =====
+usbHsInitialize: OK, region kr, freq 8750
+fm: earphone 04e8:a05b seen (IF0 id -1), waiting 6000 ms
+fm: acquire IF0 (id 1343225856): OK
+fm: power 0, recording 0, protocol 1.7
+fm: device changed or not answering (id 1343225856 -> -1, 0 failures)
+fm: released IF0 (id 1343225856)
+fm: earphone 04e8:a05b seen (IF0 id -1), waiting 6000 ms
+ui: 이어폰 연결이 끊어졌습니다.
+fm: earphone gone
+fm: earphone 04e8:a05b seen (IF0 id -1), waiting 6000 ms
+fm: acquire IF0 (id 1343553536): OK
+fm: power 0, recording 0, protocol 1.7
+fm: device changed or not answering (id 1343553536 -> -1, 0 failures)
+fm: released IF0 (id 1343553536)
+fm: earphone 04e8:a05b seen (IF0 id -1), waiting 6000 ms
+ui: 이어폰 연결이 끊어졌습니다.
+fm: acquire IF0 (id 1343553536): OK
+fm: power 0, recording 0, protocol 1.7
+fm: device changed or not answering (id 1343553536 -> -1, 0 failures)
+fm: released IF0 (id 1343553536)
+fm: earphone 04e8:a05b seen (IF0 id -1), waiting 6000 ms
+ui: 이어폰 연결이 끊어졌습니다.
+ui: 이어폰을 준비하는 중입니다. 잠시 후 다시 누르세요.

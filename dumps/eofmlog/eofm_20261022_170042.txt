@@ -1,0 +1,112 @@
+===== eofm 0.1.5  2026-10-22 17:00:42  HOS 22.1.0 =====
+usbHsInitialize: OK, region kr, freq 10550
+fm: earphone 04e8:a05b seen (device 15), waiting 6000 ms
+fm: acquire IF0 (id 1344864256, device 15): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 0 = 1: OK
+fm: SET 5 = 4: OK
+fm: SET 9 = 10550: OK
+fm: SET 10 = 1: OK
+signal: set 10550, receiver at 10550 (OK), strength 41 (rssi 00 00 OK)
+override: microphone only (speaker output)
+fm: SET 0 = 0: OK
+ui: 스피커로 바꾸는 중... 이어폰이 다시 연결됩니다.
+fm: reset the earphone: OK
+fm: earphone re-enumerated or not answering (device 15 -> 16, 0 failures)
+fm: released IF0 (id 1344864256)
+fm: earphone 04e8:a05b seen (device 16), waiting 6000 ms
+ui: 이어폰 연결이 끊어졌습니다.
+ui: 이어폰을 준비하는 중입니다. 잠시 후 다시 누르세요.
+fm: acquire IF0 (id 1345191936, device 16): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 14 = 1: OK
+fm: SET 5 = 15: OK
+fm: SET 9 = 10550: OK
+fm: SET 10 = 1: OK
+speaker: audio inputs (OK): 2
+speaker:   [0] BuiltInHeadset
+speaker:   [1] Uac_3
+speaker: open Uac_3: OK -> UacIn, 48000 Hz, 2 ch, format 2
+speaker: buffer event: OK
+speaker: active output speaker (OK)
+speaker: input buffer 3840/3840 bytes: 0x1099 (2153-0008)
+speaker: input buffer 4096/3840 bytes: 0x1099 (2153-0008)
+speaker: input buffer 1920/1920 bytes: 0x1099 (2153-0008)
+speaker: input buffer 960/960 bytes: 0x1099 (2153-0008)
+speaker: input buffer 7680/7680 bytes: 0x1099 (2153-0008)
+speaker: input buffer 4096/4096 bytes: 0x1099 (2153-0008)
+speaker: the USB microphone takes none of the buffer sizes tried
+speaker: stopped after 0 frames (0 buffers dropped)
+ui: 스피커로 듣기를 시작하지 못했습니다: the USB microphone takes none of the buffer sizes tried
+speaker: stopped after 0 frames (0 buffers dropped)
+fm: SET 14 = 0: OK
+fm: SET 14 = 1: OK
+fm: SET 5 = 15: OK
+fm: SET 9 = 10550: OK
+fm: SET 10 = 1: OK
+speaker: audio inputs (OK): 2
+speaker:   [0] BuiltInHeadset
+speaker:   [1] Uac_3
+speaker: open Uac_3: OK -> UacIn, 48000 Hz, 2 ch, format 2
+speaker: buffer event: OK
+speaker: active output speaker (OK)
+speaker: input buffer 3840/3840 bytes: 0x1099 (2153-0008)
+speaker: input buffer 4096/3840 bytes: 0x1099 (2153-0008)
+speaker: input buffer 1920/1920 bytes: 0x1099 (2153-0008)
+speaker: input buffer 960/960 bytes: 0x1099 (2153-0008)
+speaker: input buffer 7680/7680 bytes: 0x1099 (2153-0008)
+speaker: input buffer 4096/4096 bytes: 0x1099 (2153-0008)
+speaker: the USB microphone takes none of the buffer sizes tried
+speaker: stopped after 0 frames (0 buffers dropped)
+ui: 스피커로 듣기를 시작하지 못했습니다: the USB microphone takes none of the buffer sizes tried
+speaker: stopped after 0 frames (0 buffers dropped)
+fm: SET 14 = 0: OK
+override: removed (earphone is the output)
+ui: 이어폰으로 바꾸는 중... 이어폰이 다시 연결됩니다.
+fm: reset the earphone: OK
+fm: earphone re-enumerated or not answering (device 16 -> 17, 0 failures)
+fm: released IF0 (id 1345191936)
+fm: earphone 04e8:a05b seen (device 17), waiting 6000 ms
+ui: 이어폰 연결이 끊어졌습니다.
+ui: 이어폰을 준비하는 중입니다. 잠시 후 다시 누르세요.
+fm: acquire IF0 (id 1345519616, device 17): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 0 = 1: OK
+fm: SET 5 = 4: OK
+fm: SET 9 = 10550: OK
+fm: SET 10 = 1: OK
+fm: SET 0 = 0: OK
+fm: SET 0 = 1: OK
+fm: SET 5 = 4: OK
+fm: SET 9 = 10550: OK
+fm: SET 10 = 1: OK
+signal: set 10550, receiver at 10550 (OK), strength 35 (rssi 00 00 OK)
+fm: SET 9 = 10470: OK
+signal: set 10470, receiver at 10470 (OK), strength 52 (rssi 00 00 OK)
+fm: SET 9 = 10150: OK
+signal: set 10150, receiver at 10150 (OK), strength 27 (rssi 00 00 OK)
+fm: SET 9 = 9910: OK
+signal: set 9910, receiver at 9910 (OK), strength 33 (rssi 00 00 OK)
+fm: SET 9 = 9790: OK
+signal: set 9790, receiver at 9790 (OK), strength 29 (rssi 00 00 OK)
+fm: SET 9 = 9630: OK
+signal: set 9630, receiver at 9630 (OK), strength 31 (rssi 00 00 OK)
+fm: SET 9 = 9600: OK
+signal: set 9600, receiver at 9600 (OK), strength 36 (rssi 00 00 OK)
+fm: SET 9 = 9490: OK
+signal: set 9490, receiver at 9490 (OK), strength 29 (rssi 00 00 OK)
+fm: SET 9 = 9600: OK
+signal: set 9600, receiver at 9600 (OK), strength 35 (rssi 00 00 OK)
+fm: SET 9 = 9490: OK
+signal: set 9490, receiver at 9490 (OK), strength 30 (rssi 00 00 OK)
+fm: SET 9 = 9330: OK
+signal: set 9330, receiver at 9330 (OK), strength 24 (rssi 00 00 OK)
+fm: SET 9 = 9190: OK
+signal: set 9190, receiver at 9190 (OK), strength 41 (rssi 00 00 OK)
+fm: SET 9 = 9330: OK
+signal: set 9330, receiver at 9330 (OK), strength 25 (rssi 00 00 OK)
+fm: SET 9 = 9190: OK
+signal: set 9190, receiver at 9190 (OK), strength 40 (rssi 00 00 OK)
+fm: SET 0 = 0: OK
+exit: radio off
+fm: released IF0 (id 1345519616)

@@ -1,0 +1,54 @@
+===== eofm 0.1.6  2026-10-22 17:05:41  HOS 22.1.0 =====
+usbHsInitialize: OK, region kr, freq 9190
+fm: earphone 04e8:a05b seen (device 20), waiting 6000 ms
+fm: acquire IF0 (id 1345847296, device 20): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 0 = 1: OK
+fm: SET 5 = 4: OK
+fm: SET 9 = 9190: OK
+fm: SET 10 = 1: OK
+signal: set 9190, receiver at 9190 (OK), strength 41 (rssi 00 00 OK)
+override: microphone only (speaker output)
+fm: SET 0 = 0: OK
+ui: 스피커로 바꾸는 중... 이어폰이 다시 연결됩니다.
+fm: reset the earphone: OK
+fm: earphone gone
+fm: released IF0 (id 1345847296)
+ui: 이어폰 연결이 끊어졌습니다.
+fm: earphone 04e8:a05b seen (device 21), waiting 6000 ms
+fm: acquire IF0 (id 1346174976, device 21): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 14 = 1: OK
+fm: SET 5 = 15: OK
+fm: SET 9 = 9190: OK
+fm: SET 10 = 1: OK
+speaker: audio inputs (OK): 2
+speaker:   [0] BuiltInHeadset
+speaker:   [1] Uac_4
+speaker: open Uac_4: OK -> UacIn, 48000 Hz, 2 ch, format 2
+speaker: buffer event: OK
+speaker: could not create the USB input event
+speaker: active output speaker (OK)
+speaker: AppendUacInBufferAuto (cmd 10): 0xF601 (2001-0123)
+speaker: AppendUacInBuffer (cmd 7): 0xF601 (2001-0123)
+speaker: input buffer 3840/3840 bytes: 0xF601 (2001-0123)
+speaker: AppendUacInBufferAuto (cmd 10): 0xF601 (2001-0123)
+speaker: AppendUacInBuffer (cmd 7): 0xF601 (2001-0123)
+speaker: input buffer 4096/3840 bytes: 0xF601 (2001-0123)
+speaker: AppendUacInBufferAuto (cmd 10): 0xF601 (2001-0123)
+speaker: AppendUacInBuffer (cmd 7): 0xF601 (2001-0123)
+speaker: input buffer 1920/1920 bytes: 0xF601 (2001-0123)
+speaker: AppendUacInBufferAuto (cmd 10): 0xF601 (2001-0123)
+speaker: AppendUacInBuffer (cmd 7): 0xF601 (2001-0123)
+speaker: input buffer 960/960 bytes: 0xF601 (2001-0123)
+speaker: AppendUacInBufferAuto (cmd 10): 0xF601 (2001-0123)
+speaker: AppendUacInBuffer (cmd 7): 0xF601 (2001-0123)
+speaker: input buffer 7680/7680 bytes: 0xF601 (2001-0123)
+speaker: AppendUacInBufferAuto (cmd 10): 0xF601 (2001-0123)
+speaker: AppendUacInBuffer (cmd 7): 0xF601 (2001-0123)
+speaker: input buffer 4096/4096 bytes: 0xF601 (2001-0123)
+speaker: the USB microphone takes none of the buffer sizes tried
+speaker: stopped after 0 frames (0 buffers dropped)
+ui: 스피커로 듣기를 시작하지 못했습니다: the USB microphone takes none of the buffer sizes tried
+speaker: stopped after 0 frames (0 buffers dropped)
+fm: SET 14 = 0: OK

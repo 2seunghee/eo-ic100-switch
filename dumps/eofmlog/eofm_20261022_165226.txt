@@ -1,0 +1,39 @@
+===== eofm 0.1.4  2026-10-22 16:52:26  HOS 22.1.0 =====
+usbHsInitialize: OK, region kr, freq 9010
+fm: earphone 04e8:a05b seen (device 12), waiting 6000 ms
+fm: acquire IF0 (id 1344536576, device 12): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 0 = 1: OK
+fm: SET 5 = 4: OK
+fm: SET 9 = 9010: OK
+fm: SET 10 = 1: OK
+signal: set 9010, receiver at 9010 (OK), strength 31 (rssi 00 00 OK)
+fm: SET 9 = 8870: OK
+signal: set 8870, receiver at 8870 (OK), strength 33 (rssi 00 00 OK)
+fm: SET 9 = 9130: OK
+signal: set 9130, receiver at 9130 (OK), strength 22 (rssi 00 00 OK)
+fm: SET 9 = 9190: OK
+signal: set 9190, receiver at 9190 (OK), strength 32 (rssi 00 00 OK)
+fm: SET 9 = 9330: OK
+signal: set 9330, receiver at 9330 (OK), strength 27 (rssi 00 00 OK)
+fm: SET 9 = 10730: OK
+signal: set 10730, receiver at 10730 (OK), strength 34 (rssi 00 00 OK)
+fm: SET 9 = 9910: OK
+signal: set 9910, receiver at 9910 (OK), strength 33 (rssi 00 00 OK)
+fm: SET 9 = 9790: OK
+signal: set 9790, receiver at 9790 (OK), strength 29 (rssi 00 00 OK)
+fm: SET 9 = 10550: OK
+signal: set 10550, receiver at 10550 (OK), strength 34 (rssi 00 00 OK)
+fm: SET 9 = 10550: OK
+fm: SET 7 = 2: OK
+seek: found 10550, strength 36, after 83 ms
+fm: SET 9 = 10550: OK
+fm: SET 7 = 2: OK
+seek: found 10550, strength 36, after 33 ms
+fm: SET 9 = 10550: OK
+fm: SET 7 = 2: OK
+seek: found 10550, strength 36, after 33 ms
+fm: SET 9 = 10550: OK
+fm: SET 0 = 0: OK
+exit: radio off
+fm: released IF0 (id 1344536576)

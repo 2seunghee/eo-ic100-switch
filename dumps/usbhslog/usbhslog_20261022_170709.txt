@@ -1,0 +1,45 @@
+===== usbhs-logmitm 0.2.2  started 2026-10-22 17:07:09  (15.867 s after boot) =====
+(lines stamped +sssss.mmm are seconds since boot, logged before the clock was read)
++00015.857 usbhs-logmitm 0.2.2: HOS 22.1.0, SD OK
++00015.859 mitm: InstallMitm(usb:hs): OK
++00015.860 mitm: sm asks (cmd 65000) about usb:hs hid (pid 100, flags 0x2): leave, reply OK
++00015.860 mitm: ClearFutureMitm(usb:hs): OK
+17:07:09.157 config: enabled=1 services=usb:hs programs=0100000000000014 read_ctrl_data=0 sync=0 hot_detail=40 buf_dump=64 log_keep=20 rewrite=ot_headphones,it_mic
+17:07:09.157 1 of 1 service(s) intercepted. Log: sdmc:/switch/usbhs-logmitm/logs/usbhslog_20261022_170709.txt
+17:07:09.477 mitm: sm asks (cmd 65000) about usb:hs hid (pid 100, flags 0x2): leave, reply OK
+17:07:09.722 mitm: sm asks (cmd 65000) about usb:hs 0100000000000046 (pid 105, flags 0x2): leave, reply OK
+17:07:10.163 mitm: sm asks (cmd 65000) about usb:hs audio (pid 101, flags 0x2): INTERCEPT, reply OK
+17:07:10.163 mitm: audio (pid 101) connected to usb:hs: session S1
+17:07:10.163 S1 audio usb:hs: control #3 QueryPointerBufferSize
+17:07:10.163   -> OK out [00100000 00000000 00000000 ]
+17:07:10.163 S1 audio usb:hs: control #0 ConvertCurrentObjectToDomain
+17:07:10.163   -> OK out [04000000 00000000 00000000 ]
+17:07:10.163    S1 audio obj4 usb:hs is a domain now (object 4)
+17:07:10.163 S1 audio obj4 usb:hs #0 BindClientProcess: in []
+17:07:10.163   -> OK out [00000000 00000000 ]
+17:07:10.163 S1 audio obj4 usb:hs #6 GetInterfaceStateChangeEvent: in []
+17:07:10.163   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+17:07:10.163 S1 audio obj4 usb:hs #4 CreateInterfaceAvailableEvent: in [00008000 00000000 00000000 00000001 0000]
+17:07:10.163   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+17:07:30.892 S1 audio obj4 usb:hs #2 QueryAvailableInterfaces: in [80000000 00000000 00000000 00010000 ] B+0x1140
+17:07:30.892   -> OK out [00000000 00000000 00000000 ]
+17:07:30.893 S1 audio obj4 usb:hs #5 DestroyInterfaceAvailableEvent: in [00]
+17:07:30.893   -> OK out [00000000 00000000 ]
+17:07:30.893 S1 audio obj4 usb:hs: domain object 4 closed
+17:07:30.893 S1 audio obj4 usb:hs: session closed (client closed it), 0 left
+17:07:48.244 mitm: sm asks (cmd 65000) about usb:hs audio (pid 101, flags 0x2): INTERCEPT, reply OK
+17:07:48.244 mitm: audio (pid 101) connected to usb:hs: session S2
+17:07:48.244 S2 audio usb:hs: control #3 QueryPointerBufferSize
+17:07:48.244   -> OK out [00100000 00000000 00000000 ]
+17:07:48.244 S2 audio usb:hs: control #0 ConvertCurrentObjectToDomain
+17:07:48.244   -> OK out [04000000 00000000 00000000 ]
+17:07:48.244    S2 audio obj4 usb:hs is a domain now (object 4)
+17:07:48.244 S2 audio obj4 usb:hs #0 BindClientProcess: in []
+17:07:48.244   -> OK out [00000000 00000000 ]
+17:07:48.244 S2 audio obj4 usb:hs #6 GetInterfaceStateChangeEvent: in []
+17:07:48.244   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+17:07:48.244 S2 audio obj4 usb:hs #4 CreateInterfaceAvailableEvent: in [00008000 00000000 00000000 00000001 0000]
+17:07:48.244   -> OK out [00000000 00000000 00000000 00000000 ] +handle
+17:07:53.423 mitm: sm asks (cmd 65000) about usb:hs 010000000000100d (pid 138, flags 0x1b): leave, reply OK
+17:07:55.773 mitm: sm asks (cmd 65000) about usb:hs 010000000000100d (pid 138, flags 0x1b): leave, reply OK
+17:08:10.614 status: 7 sm queries, 2 client(s) intercepted (2 from audio), 1 session(s) open, 13 requests, 0 forward failures, 0 descriptor rewrite(s), 0 memory reads failed

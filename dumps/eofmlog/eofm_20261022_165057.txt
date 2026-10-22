@@ -1,0 +1,299 @@
+===== eofm 0.1.4  2026-10-22 16:50:57  HOS 22.1.0 =====
+usbHsInitialize: OK, region kr, freq 9910
+fm: earphone 04e8:a05b seen (device 10), waiting 6000 ms
+fm: acquire IF0 (id 1343881216, device 10): OK
+fm: power 0, recording 0, protocol 1.7
+override: microphone only (speaker output)
+ui: 스피커로 바꾸는 중... 이어폰이 다시 연결됩니다.
+fm: reset the earphone: OK
+fm: earphone re-enumerated or not answering (device 10 -> 11, 0 failures)
+fm: released IF0 (id 1343881216)
+fm: earphone 04e8:a05b seen (device 11), waiting 6000 ms
+ui: 이어폰 연결이 끊어졌습니다.
+fm: acquire IF0 (id 1344208896, device 11): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 14 = 1: OK
+fm: SET 5 = 15: OK
+fm: SET 9 = 9910: OK
+fm: SET 10 = 1: OK
+speaker: audio inputs (OK): 2
+speaker:   [0] BuiltInHeadset
+speaker:   [1] Uac_2
+speaker: open Uac_2: OK -> UacIn, 48000 Hz, 2 ch, format 2
+speaker: buffer event: OK
+speaker: active output speaker (OK)
+speaker: append input buffer 0: 0x1099 (2153-0008)
+speaker: append input buffer 1: 0x1099 (2153-0008)
+speaker: append input buffer 2: 0x1099 (2153-0008)
+speaker: append input buffer 3: 0x1099 (2153-0008)
+speaker: start audin OK, audout OK
+signal: set 9910, receiver at 9910 (OK), strength 35 (rssi 00 00 OK)
+speaker: no audio from the USB microphone for 3 s
+speaker: 0.0 s played, peak -99 dBFS, 0 dropped; 200 polls, 0 failed (last -), input state 0 (OK)
+override: removed (earphone is the output)
+speaker: stopped after 0 frames (0 buffers dropped)
+fm: SET 14 = 0: OK
+ui: 이어폰으로 바꾸는 중... 이어폰이 다시 연결됩니다.
+fm: reset the earphone: OK
+fm: earphone gone
+fm: released IF0 (id 1344208896)
+ui: 이어폰 연결이 끊어졌습니다.
+fm: earphone 04e8:a05b seen (device 12), waiting 6000 ms
+ui: 이어폰을 준비하는 중입니다. 잠시 후 다시 누르세요.
+ui: 이어폰을 준비하는 중입니다. 잠시 후 다시 누르세요.
+fm: acquire IF0 (id 1344536576, device 12): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 0 = 1: OK
+fm: SET 5 = 4: OK
+fm: SET 9 = 9910: OK
+fm: SET 10 = 1: OK
+signal: set 9910, receiver at 9910 (OK), strength 33 (rssi 00 00 OK)
+fm: SET 4 = 1: OK
+fm: SET 9 = 8750: OK
+fm: SET 9 = 8760: OK
+fm: SET 9 = 8770: OK
+fm: SET 9 = 8780: OK
+fm: SET 9 = 8790: OK
+fm: SET 9 = 8800: OK
+fm: SET 9 = 8810: OK
+fm: SET 9 = 8820: OK
+fm: SET 9 = 8830: OK
+fm: SET 9 = 8840: OK
+fm: SET 9 = 8850: OK
+fm: SET 9 = 8860: OK
+fm: SET 9 = 8870: OK
+fm: SET 9 = 8880: OK
+fm: SET 9 = 8890: OK
+fm: SET 9 = 8900: OK
+fm: SET 9 = 8910: OK
+fm: SET 9 = 8920: OK
+fm: SET 9 = 8930: OK
+fm: SET 9 = 8940: OK
+fm: SET 9 = 8950: OK
+fm: SET 9 = 8960: OK
+fm: SET 9 = 8970: OK
+fm: SET 9 = 8980: OK
+fm: SET 9 = 8990: OK
+fm: SET 9 = 9000: OK
+fm: SET 9 = 9010: OK
+fm: SET 9 = 9020: OK
+fm: SET 9 = 9030: OK
+fm: SET 9 = 9040: OK
+fm: SET 9 = 9050: OK
+fm: SET 9 = 9060: OK
+fm: SET 9 = 9070: OK
+fm: SET 9 = 9080: OK
+fm: SET 9 = 9090: OK
+fm: SET 9 = 9100: OK
+fm: SET 9 = 9110: OK
+fm: SET 9 = 9120: OK
+fm: SET 9 = 9130: OK
+fm: SET 9 = 9140: OK
+fm: SET 9 = 9150: OK
+fm: SET 9 = 9160: OK
+fm: SET 9 = 9170: OK
+fm: SET 9 = 9180: OK
+fm: SET 9 = 9190: OK
+fm: SET 9 = 9200: OK
+fm: SET 9 = 9210: OK
+fm: SET 9 = 9220: OK
+fm: SET 9 = 9230: OK
+fm: SET 9 = 9240: OK
+fm: SET 9 = 9250: OK
+fm: SET 9 = 9260: OK
+fm: SET 9 = 9270: OK
+fm: SET 9 = 9280: OK
+fm: SET 9 = 9290: OK
+fm: SET 9 = 9300: OK
+fm: SET 9 = 9310: OK
+fm: SET 9 = 9320: OK
+fm: SET 9 = 9330: OK
+fm: SET 9 = 9340: OK
+fm: SET 9 = 9350: OK
+fm: SET 9 = 9360: OK
+fm: SET 9 = 9370: OK
+fm: SET 9 = 9380: OK
+fm: SET 9 = 9390: OK
+fm: SET 9 = 9400: OK
+fm: SET 9 = 9410: OK
+fm: SET 9 = 9420: OK
+fm: SET 9 = 9430: OK
+fm: SET 9 = 9440: OK
+fm: SET 9 = 9450: OK
+fm: SET 9 = 9460: OK
+fm: SET 9 = 9470: OK
+fm: SET 9 = 9480: OK
+fm: SET 9 = 9490: OK
+fm: SET 9 = 9500: OK
+fm: SET 9 = 9510: OK
+fm: SET 9 = 9520: OK
+fm: SET 9 = 9530: OK
+fm: SET 9 = 9540: OK
+fm: SET 9 = 9550: OK
+fm: SET 9 = 9560: OK
+fm: SET 9 = 9570: OK
+fm: SET 9 = 9580: OK
+fm: SET 9 = 9590: OK
+fm: SET 9 = 9600: OK
+fm: SET 9 = 9610: OK
+fm: SET 9 = 9620: OK
+fm: SET 9 = 9630: OK
+fm: SET 9 = 9640: OK
+fm: SET 9 = 9650: OK
+fm: SET 9 = 9660: OK
+fm: SET 9 = 9670: OK
+fm: SET 9 = 9680: OK
+fm: SET 9 = 9690: OK
+fm: SET 9 = 9700: OK
+fm: SET 9 = 9710: OK
+fm: SET 9 = 9720: OK
+fm: SET 9 = 9730: OK
+fm: SET 9 = 9740: OK
+fm: SET 9 = 9750: OK
+fm: SET 9 = 9760: OK
+fm: SET 9 = 9770: OK
+fm: SET 9 = 9780: OK
+fm: SET 9 = 9790: OK
+fm: SET 9 = 9800: OK
+fm: SET 9 = 9810: OK
+fm: SET 9 = 9820: OK
+fm: SET 9 = 9830: OK
+fm: SET 9 = 9840: OK
+fm: SET 9 = 9850: OK
+fm: SET 9 = 9860: OK
+fm: SET 9 = 9870: OK
+fm: SET 9 = 9880: OK
+fm: SET 9 = 9890: OK
+fm: SET 9 = 9900: OK
+fm: SET 9 = 9910: OK
+fm: SET 9 = 9920: OK
+fm: SET 9 = 9930: OK
+fm: SET 9 = 9940: OK
+fm: SET 9 = 9950: OK
+fm: SET 9 = 9960: OK
+fm: SET 9 = 9970: OK
+fm: SET 9 = 9980: OK
+fm: SET 9 = 9990: OK
+fm: SET 9 = 10000: OK
+fm: SET 9 = 10010: OK
+fm: SET 9 = 10020: OK
+fm: SET 9 = 10030: OK
+fm: SET 9 = 10040: OK
+fm: SET 9 = 10050: OK
+fm: SET 9 = 10060: OK
+fm: SET 9 = 10070: OK
+fm: SET 9 = 10080: OK
+fm: SET 9 = 10090: OK
+fm: SET 9 = 10100: OK
+fm: SET 9 = 10110: OK
+fm: SET 9 = 10120: OK
+fm: SET 9 = 10130: OK
+fm: SET 9 = 10140: OK
+fm: SET 9 = 10150: OK
+fm: SET 9 = 10160: OK
+fm: SET 9 = 10170: OK
+fm: SET 9 = 10180: OK
+fm: SET 9 = 10190: OK
+fm: SET 9 = 10200: OK
+fm: SET 9 = 10210: OK
+fm: SET 9 = 10220: OK
+fm: SET 9 = 10230: OK
+fm: SET 9 = 10240: OK
+fm: SET 9 = 10250: OK
+fm: SET 9 = 10260: OK
+fm: SET 9 = 10270: OK
+fm: SET 9 = 10280: OK
+fm: SET 9 = 10290: OK
+fm: SET 9 = 10300: OK
+fm: SET 9 = 10310: OK
+fm: SET 9 = 10320: OK
+fm: SET 9 = 10330: OK
+fm: SET 9 = 10340: OK
+fm: SET 9 = 10350: OK
+fm: SET 9 = 10360: OK
+fm: SET 9 = 10370: OK
+fm: SET 9 = 10380: OK
+fm: SET 9 = 10390: OK
+fm: SET 9 = 10400: OK
+fm: SET 9 = 10410: OK
+fm: SET 9 = 10420: OK
+fm: SET 9 = 10430: OK
+fm: SET 9 = 10440: OK
+fm: SET 9 = 10450: OK
+fm: SET 9 = 10460: OK
+fm: SET 9 = 10470: OK
+fm: SET 9 = 10480: OK
+fm: SET 9 = 10490: OK
+fm: SET 9 = 10500: OK
+fm: SET 9 = 10510: OK
+fm: SET 9 = 10520: OK
+fm: SET 9 = 10530: OK
+fm: SET 9 = 10540: OK
+fm: SET 9 = 10550: OK
+fm: SET 9 = 10560: OK
+fm: SET 9 = 10570: OK
+fm: SET 9 = 10580: OK
+fm: SET 9 = 10590: OK
+fm: SET 9 = 10600: OK
+fm: SET 9 = 10610: OK
+fm: SET 9 = 10620: OK
+fm: SET 9 = 10630: OK
+fm: SET 9 = 10640: OK
+fm: SET 9 = 10650: OK
+fm: SET 9 = 10660: OK
+fm: SET 9 = 10670: OK
+fm: SET 9 = 10680: OK
+fm: SET 9 = 10690: OK
+fm: SET 9 = 10700: OK
+fm: SET 9 = 10710: OK
+fm: SET 9 = 10720: OK
+fm: SET 9 = 10730: OK
+fm: SET 9 = 10740: OK
+fm: SET 9 = 10750: OK
+fm: SET 9 = 10760: OK
+fm: SET 9 = 10770: OK
+fm: SET 9 = 10780: OK
+fm: SET 9 = 10790: OK
+fm: SET 9 = 10800: OK
+scan 8750:  18  18  18  19  19  19  19  19  19  20
+scan 8850:  20  27  38  28  20  20  20  19  19  19
+scan 8950:  19  19  19  20  19  23  31  23  20  20
+scan 9050:  20  20  21  20  21  20  21  21  27  23
+scan 9150:  21  20  20  22  26  23  20  19  19  19
+scan 9250:  19  19  19  19  19  20  19  21  27  24
+scan 9350:  20  20  20  20  19  19  19  19  19  19
+scan 9450:  19  19  19  21  25  20  19  19  18  18
+scan 9550:  19  19  19  19  28  36  24  23  31  24
+scan 9650:  18  18  19  19  18  18  18  18  18  18
+scan 9750:  18  18  18  21  31  24  18  18  18  17
+scan 9850:  18  17  17  18  17  22  33  21  16  16
+scan 9950:  16  16  16  16  17  16  16  16  16  16
+scan 10050:  16  16  16  16  15  16  16  16  16  16
+scan 10150:  25  18  15  15  15  17  15  15  15  15
+scan 10250:  15  15  15  15  15  15  15  15  15  15
+scan 10350:  15  15  15  15  15  15  15  15  15  15
+scan 10450:  14  35  43  38  15  15  15  15  15  27
+scan 10550:  33  25  15  15  15  15  14  14  15  15
+scan 10650:  14  14  14  15  14  13  15  20  28  20
+scan 10750:  15  14  15  15  18  24
+scan: noise 19, threshold 25, 14 station(s)
+fm: SET 4 = 0: OK
+fm: SET 9 = 10470: OK
+ui: 채널 14개를 찾았습니다.
+signal: set 10470, receiver at 10470 (OK), strength 46 (rssi 00 00 OK)
+fm: SET 9 = 10470: OK
+fm: SET 7 = 2: OK
+seek: found 10470, strength 50, after 83 ms
+fm: SET 9 = 10470: OK
+fm: SET 7 = 2: OK
+seek: found 10470, strength 50, after 33 ms
+fm: SET 9 = 10470: OK
+fm: SET 7 = 2: OK
+seek: found 10470, strength 50, after 34 ms
+fm: SET 9 = 8870: OK
+signal: set 8870, receiver at 8870 (OK), strength 50 (rssi 00 00 OK)
+fm: SET 9 = 9010: OK
+signal: set 9010, receiver at 9010 (OK), strength 50 (rssi 00 00 OK)
+fm: SET 0 = 0: OK
+exit: radio off
+fm: released IF0 (id 1344536576)

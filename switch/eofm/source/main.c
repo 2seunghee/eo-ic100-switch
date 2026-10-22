@@ -1,9 +1,8 @@
 // eofm: FM radio of the Samsung EO-IC100 USB-C earphone on the Switch (homebrew NRO).
 //
-// Earphone output: the receiver plays the radio inside the earphone (FM power on); the console's
-// own sound keeps going to the earphone as usual (usbhs-logmitm).
-// Speaker output: the receiver runs in its recording mode, which sends the radio to the console as
-// the earphone's USB microphone; speaker.c plays that through the console speaker.
+// The receiver plays the radio inside the earphone (FM power on); the console's own sound keeps
+// going to the earphone as usual (usbhs-logmitm). Earphone only: the speaker output that was tried
+// in 0.1.3-0.2.0 is kept in attic/ (it crashed the audio sysmodule both ways it was tried).
 //
 // The screen follows Samsung's radio app (Korean, dark): power button, channel scan, the frequency
 // with a favourite star, a dial scale, and favourites / channels tabs. Touch and buttons both work.
@@ -16,7 +15,6 @@
 #include "gfx.h"
 #include "log.h"
 #include "rds.h"
-#include "speaker.h"
 
 #define SETTINGS_PATH   APP_DIR "/settings.ini"
 #define MAX_LIST        24
@@ -27,8 +25,7 @@
 #define REPEAT_MS       90
 #define MSG_MS          4000
 
-typedef enum { MODE_OFF, MODE_EARPHONE, MODE_SPEAKER } radio_mode;
-enum { OUT_EARPHONE = 0, OUT_SPEAKER = 1 };
+typedef enum { MODE_OFF, MODE_EARPHONE } radio_mode;
 enum { TAB_FAV = 0, TAB_CH = 1 };
 
 typedef struct {
@@ -54,11 +51,9 @@ typedef struct {
 static struct {
     fm_dev     dev;
     radio_mode mode;
-    int        output;        // OUT_*: what the power button switches on
     int        region;
     u16        freq;
     u8         volume;        // earphone output, 0..15
-    u8         spk_volume;    // receiver volume in speaker output (capture level), 0..15
     bool       mute, mono, rds;
     u8         rssi;
     bool       seeking;       // the receiver seeks; the app watches its channel
@@ -72,8 +67,6 @@ static struct {
     int        noise, margin; // kept in settings.ini for a later signal-based scan
     u16        rssi_logged;   // last frequency whose signal went to the log
     int        query_logs;    // QUERY answers logged since the last tune
-    bool       enum_mic_only; // this plug-in was enumerated as a microphone only (speaker output)
-    bool       pending_on;    // switch the radio on once the earphone is back (after an output switch)
     u16        fav[MAX_LIST];
     int        nfav;
     u16        ch[MAX_LIST];
@@ -84,7 +77,7 @@ static struct {
     u64        msg_ms;
     u64        last_query, last_rssi, last_dev;
     // touch targets from the last frame
-    box        b_power, b_scan, b_left, b_right, b_star, b_tab[2], b_chip[MAX_LIST], b_out;
+    box        b_power, b_scan, b_left, b_right, b_star, b_tab[2], b_chip[MAX_LIST];
     int        nchips;
 } R;
 
@@ -123,7 +116,6 @@ static void settings_load(void) {
     R.region = 0;
     R.freq = 8750;
     R.volume = 6;
-    R.spk_volume = 15;
     R.rds = true;
     R.tab = TAB_CH;
     R.noise = -1;
@@ -144,8 +136,6 @@ static void settings_load(void) {
                 if (!strcmp(v, REGIONS[i].name)) R.region = i;
         } else if (!strcmp(k, "freq")) R.freq = (u16)atoi(v);
         else if (!strcmp(k, "volume")) R.volume = (u8)atoi(v);
-        else if (!strcmp(k, "speaker_volume")) R.spk_volume = (u8)atoi(v);
-        else if (!strcmp(k, "output")) R.output = !strcmp(v, "speaker") ? OUT_SPEAKER : OUT_EARPHONE;
         else if (!strcmp(k, "mono")) R.mono = atoi(v) != 0;
         else if (!strcmp(k, "rds")) R.rds = atoi(v) != 0;
         else if (!strcmp(k, "favorites") || !strcmp(k, "presets")) parse_list(v, R.fav, &R.nfav);
@@ -154,7 +144,6 @@ static void settings_load(void) {
         else if (!strcmp(k, "station_margin")) R.margin = atoi(v);
     }
     if (R.volume > 15) R.volume = 15;
-    if (R.spk_volume > 15) R.spk_volume = 15;
     if (R.freq < reg()->min || R.freq > reg()->max) R.freq = reg()->min;
     if (!R.nch && R.nfav) R.tab = TAB_FAV;
 }
@@ -162,10 +151,9 @@ static void settings_load(void) {
 static void settings_save(void) {
     FILE *f = fopen(SETTINGS_PATH, "w");
     if (!f) return;
-    fprintf(f, "; eofm settings. region = kr | eu | us | jp, output = earphone | speaker.\n"
+    fprintf(f, "; eofm settings. region = kr | eu | us | jp.\n"
                "; Frequencies in 10 kHz units (8910 = 89.1 MHz).\n");
-    fprintf(f, "region=%s\noutput=%s\nfreq=%u\nvolume=%u\nspeaker_volume=%u\nmono=%d\nrds=%d\n", reg()->name,
-            R.output == OUT_SPEAKER ? "speaker" : "earphone", R.freq, R.volume, R.spk_volume, R.mono, R.rds);
+    fprintf(f, "region=%s\nfreq=%u\nvolume=%u\nmono=%d\nrds=%d\n", reg()->name, R.freq, R.volume, R.mono, R.rds);
     fprintf(f, "noise=%d\nstation_margin=%d\n", R.noise, R.margin);
     fprintf(f, "favorites=");
     for (int i = 0; i < R.nfav; i++) fprintf(f, "%s%u", i ? "," : "", R.fav[i]);
@@ -192,40 +180,6 @@ static void list_insert(u16 *l, int *n, u16 f) {
 }
 
 // ------------------------------------------------------------------ radio
-
-// Speaker output needs the console to not take the earphone as its audio output, or the system
-// keeps playing to USB whatever audctl is told (eofm 0.1.2 on the console: "SetOutputTarget OK ->
-// active USB"). With "hide" in this file, usbhs-logmitm (0.3.0+) leaves the earphone out of the
-// audio sysmodule's interface lists: the console has no USB output and plays on its speaker, and the
-// microphone interface is free for speaker.c. The earphone is re-enumerated (ResetDevice) to apply it.
-// (0.1.3-0.1.6 wrote "it_mic" and went through audin, which crashed the audio sysmodule.)
-#define OVERRIDE_PATH "sdmc:/switch/usbhs-logmitm/rewrite_override.txt"
-
-static bool override_present(void) {
-    FILE *f = fopen(OVERRIDE_PATH, "rb");
-    if (f) fclose(f);
-    return f != NULL;
-}
-
-static void set_override(bool mic_only) {
-    if (mic_only) {
-        FILE *f = fopen(OVERRIDE_PATH, "wb");
-        if (f) {
-            fputs("hide\n", f);
-            fclose(f);
-        }
-    } else {
-        remove(OVERRIDE_PATH);
-    }
-    log_file("override: %s\n", mic_only ? "hide the earphone from audio (speaker output)" : "removed (earphone is the output)");
-}
-
-// Re-enumerates the earphone so that the audio sysmodule reads its descriptors again. The receiver
-// loses its state with it; R.pending_on switches the radio on again once IF0 is back.
-static void reenumerate(void) {
-    Result rc = fm_reset(&R.dev);
-    log_file("fm: reset the earphone: %s\n", rc_str(rc));
-}
 
 static void log_signal(void) {
     u8 c[2] = {0, 0}, s[2] = {0, 0};
@@ -254,34 +208,21 @@ static void stop_seek(void) {
 
 static void radio_off(void) {
     stop_seek();
-    if (R.mode == MODE_SPEAKER) {
-        spk_stop();
-        fm_set(&R.dev, FM_SET_RECORDING, 0);
-    } else if (R.mode == MODE_EARPHONE) {
-        fm_set(&R.dev, FM_SET_POWER, 0);
-    }
+    if (R.mode == MODE_EARPHONE) fm_set(&R.dev, FM_SET_POWER, 0);
     R.mode = MODE_OFF;
 }
 
+// The receiver plays the radio inside the earphone (its "power" mode). A speaker output, with the
+// receiver's recording mode sending the radio to the console as the USB microphone, was tried in
+// 0.1.3-0.2.0 and taken out: both ways of getting that microphone crashed the audio sysmodule
+// (docs/PLAN.md, attic/speaker.c).
 static void radio_on(void) {
     if (R.dev.state != FMDEV_OPEN) {
         say(R.dev.state == FMDEV_NONE ? "이어폰을 연결하세요." : "이어폰을 준비하는 중입니다. 잠시 후 다시 누르세요.");
         return;
     }
-    radio_mode m = R.output == OUT_SPEAKER ? MODE_SPEAKER : MODE_EARPHONE;
-    // Speaker output needs the earphone enumerated as a microphone only (see set_override).
-    if ((m == MODE_SPEAKER) != R.enum_mic_only) {
-        set_override(m == MODE_SPEAKER);
-        R.enum_mic_only = m == MODE_SPEAKER;
-        R.pending_on = true;
-        radio_off();
-        say(m == MODE_SPEAKER ? "스피커로 바꾸는 중... 이어폰이 다시 연결됩니다." : "이어폰으로 바꾸는 중... 이어폰이 다시 연결됩니다.");
-        reenumerate();
-        return;
-    }
     radio_off();
-    // The receiver has two exclusive modes: power (sound in the earphone) and recording (sound to USB).
-    Result rc = fm_set(&R.dev, m == MODE_EARPHONE ? FM_SET_POWER : FM_SET_RECORDING, 1);
+    Result rc = fm_set(&R.dev, FM_SET_POWER, 1);
     if (R_FAILED(rc)) {
         say("라디오를 켜지 못했습니다 (%s).", rc_str(rc));
         return;
@@ -290,7 +231,7 @@ static void radio_on(void) {
     // volume, channel. Band and spacing are left at the receiver's defaults (87.5-108 MHz) unless
     // the region needs others: sent right after power-on (0.1.0), they left the receiver on noise.
     svcSleepThread(200000000ULL);
-    fm_set(&R.dev, FM_SET_VOLUME, m == MODE_EARPHONE ? R.volume : R.spk_volume);
+    fm_set(&R.dev, FM_SET_VOLUME, R.volume);
     if (reg()->band != 0 || reg()->spacing != 1) {
         fm_set(&R.dev, FM_SET_BAND, reg()->band);
         fm_set(&R.dev, FM_SET_SPACING, reg()->spacing);
@@ -301,39 +242,17 @@ static void radio_on(void) {
     if (R.mute) fm_set(&R.dev, FM_SET_MUTE, 1);
     if (R.rds) fm_set(&R.dev, FM_SET_RDS, 1);
     rds_reset(&R.rd);
-    R.mode = m;
+    R.mode = MODE_EARPHONE;
     R.last_rssi = now_ms();
     R.rssi_logged = 0;
     R.query_logs = 0;
-    if (m == MODE_SPEAKER && !spk_start()) {
-        spk_status st;
-        spk_get(&st);
-        say("스피커로 듣기를 시작하지 못했습니다: %s", st.error);
-        radio_off();
-    }
-}
-
-// Speaker output is switched off. 0.1.6 went through audin and crashed the audio sysmodule (fatal
-// 2003-0501); 0.2.0 had usbhs-logmitm hide the earphone from audio, which then acquired the emptied
-// list slots and crashed too (Data Abort, 0.3.0). Both are dead ends; see docs/PLAN.md.
-#define SPEAKER_OUTPUT_ENABLED 0
-
-static void set_output(int out) {
-    if (out == OUT_SPEAKER && !SPEAKER_OUTPUT_ENABLED) {
-        say("스피커로 듣기는 아직 준비 중입니다.");
-        return;
-    }
-    R.output = out;
-    if (R.mode != MODE_OFF || out == OUT_SPEAKER || R.enum_mic_only) radio_on();   // re-enumerates if needed
-    else say("이어폰으로 듣기");
 }
 
 static void set_volume(int delta) {
-    u8 *v = R.mode == MODE_SPEAKER ? &R.spk_volume : &R.volume;
-    int nv = *v + delta;
-    *v = (u8)(nv < 0 ? 0 : nv > 15 ? 15 : nv);
-    if (R.mode != MODE_OFF) fm_set(&R.dev, FM_SET_VOLUME, *v);
-    say(R.mode == MODE_SPEAKER ? "녹음 레벨 %u / 15 (스피커 음량은 본체 볼륨으로)" : "볼륨 %u / 15", *v);
+    int nv = R.volume + delta;
+    R.volume = (u8)(nv < 0 ? 0 : nv > 15 ? 15 : nv);
+    if (R.mode != MODE_OFF) fm_set(&R.dev, FM_SET_VOLUME, R.volume);
+    say("볼륨 %u / 15", R.volume);
 }
 
 // ---- what the receiver reports. QUERY answers its latest event and repeats it until there is a
@@ -548,26 +467,11 @@ static void sync_from_device(void) {
     fm_get(&R.dev, FM_GET_RECORDING, r);
     fm_get(&R.dev, FM_GET_PROTOCOL, proto);
     log_file("fm: power %u, recording %u, protocol %u.%u\n", p[0], r[0], proto[0], proto[1]);
-    if (R.enum_mic_only && !R.pending_on) {
-        // A leftover override (a crash during speaker output): the console does not use the
-        // earphone as its output. Put it back now, before anything else.
-        set_override(false);
-        R.enum_mic_only = false;
-        say("이어폰을 스위치 출력으로 되돌리는 중... 이어폰이 다시 연결됩니다.");
-        reenumerate();
-        return;
-    }
-    if (R.pending_on) {
-        R.pending_on = false;
-        radio_on();
-        return;
-    }
     if (p[0]) {
         R.mode = MODE_EARPHONE;
-        R.output = OUT_EARPHONE;
         read_channel();
         if (R_SUCCEEDED(fm_get(&R.dev, FM_GET_VOLUME, v)) && v[0] <= 15) R.volume = v[0];
-    } else if (r[0]) {   // left in recording mode by a crash: nobody plays it, switch it off
+    } else if (r[0]) {   // left in recording mode (speaker output of 0.1.3-0.2.0): switch it off
         fm_set(&R.dev, FM_SET_RECORDING, 0);
     }
 }
@@ -710,7 +614,7 @@ static void draw(void) {
     }
     else if (R.dev.state == FMDEV_BUSY) snprintf(sub, sizeof(sub), "다른 프로그램이 이어폰을 쓰고 있습니다 (eoaudio 등).");
     else if (on && R.rds && R.rd.rt_any) snprintf(sub, sizeof(sub), "%.64s", R.rd.rt);
-    else if (on) snprintf(sub, sizeof(sub), R.mode == MODE_SPEAKER ? "스피커로 듣는 중" : "이어폰으로 듣는 중");
+    else if (on) snprintf(sub, sizeof(sub), "이어폰으로 듣는 중");
     else if (R.dev.state == FMDEV_OPEN) snprintf(sub, sizeof(sub), "이어폰 줄이 안테나 역할을 합니다.");
     gfx_text(SCREEN_W / 2, 100, 22, C_TEXT2, ALIGN_CENTER, false, sub);
 
@@ -718,14 +622,9 @@ static void draw(void) {
     const int cx0 = 140, cy0 = 150, cw = 1000, ch = 370;
     gfx_rrect(cx0, cy0, cw, ch, 44, C_CARD);
 
-    // power, output selector and scan button
+    // power and scan buttons
     draw_power(cx0 + 76, cy0 + 72, on);
     R.b_power = mkbox(cx0 + 30, cy0 + 26, 92, 92);
-    const char *out = R.output == OUT_SPEAKER ? "스피커" : "이어폰";
-    int ow = gfx_text_width(22, false, out) + 48;
-    gfx_rrect(cx0 + 140, cy0 + 50, ow, 44, 22, RGB(44, 44, 47));
-    gfx_text(cx0 + 140 + ow / 2, cy0 + 59, 22, R.output == OUT_SPEAKER ? C_ACCENT : C_TEXT2, ALIGN_CENTER, false, out);
-    R.b_out = mkbox(cx0 + 140, cy0 + 50, ow, 44);
     const char *scan = R.scanning ? "찾기 중지" : "채널 찾기";
     int sw = gfx_text_width(28, true, scan) + 64;
     int sx = cx0 + cw - 34 - sw;
@@ -736,7 +635,7 @@ static void draw(void) {
 
     // signal and volume, small, under the scan button
     char info[64];
-    u8 vol = R.mode == MODE_SPEAKER ? R.spk_volume : R.volume;
+    u8 vol = R.volume;
     if (on && R.rssi) snprintf(info, sizeof(info), "신호 %u   볼륨 %u%s%s", R.rssi, vol, R.mono ? "   모노" : "", R.mute ? "   음소거" : "");
     else if (on) snprintf(info, sizeof(info), "볼륨 %u%s%s", vol, R.mono ? "   모노" : "", R.mute ? "   음소거" : "");
     else snprintf(info, sizeof(info), "볼륨 %u", vol);
@@ -822,7 +721,7 @@ static void draw(void) {
     R.b_tab[1] = mkbox(tx + tw / 2, tyb, tw / 2, th);
 
     // ---- button help, both sides of the tab bar
-    static const char *help_l[] = {"A  전원", "X  채널 찾기", "Y  즐겨찾기", "RS 누름  이어폰/스피커"};
+    static const char *help_l[] = {"A  전원", "X  채널 찾기", "Y  즐겨찾기", "LS 누름  모노/스테레오"};
     static const char *help_r[] = {"←→  0.1MHz   L R  1MHz", "ZL ZR  방송 탐색   ↑↓  볼륨", "RS ←→  목록 이동   -  탭",
                                    "+  나가기   B  끄고 나가기"};
     for (int i = 0; i < 4; i++) {
@@ -830,18 +729,6 @@ static void draw(void) {
         gfx_text(SCREEN_W - 40, 626 + i * 22, 16, C_TEXT3, ALIGN_RIGHT, false, help_r[i]);
     }
 
-    // speaker output status, when it is the one in use
-    if (R.mode == MODE_SPEAKER) {
-        spk_status st;
-        spk_get(&st);
-        char s[120];
-        if (st.error[0]) snprintf(s, sizeof(s), "스피커: %s", st.error);
-        else
-            snprintf(s, sizeof(s), "스피커 %s · 입력 %d dBFS · %.0f초", st.now == AudioTarget_Speaker ? "출력 중" : "전환 실패(이어폰으로 나감)",
-                     st.peak_db, st.frames / 48000.0);
-        gfx_text(SCREEN_W / 2, 126, 16, st.error[0] || st.now != AudioTarget_Speaker ? RGB(255, 170, 60) : C_TEXT3, ALIGN_CENTER,
-                 false, s);
-    }
     gfx_end();
 }
 
@@ -852,7 +739,6 @@ static void on_touch(int x, int y) {
         if (R.mode != MODE_OFF) radio_off();
         else radio_on();
     } else if (hit(R.b_scan, x, y)) scan_toggle();
-    else if (hit(R.b_out, x, y)) set_output(R.output == OUT_SPEAKER ? OUT_EARPHONE : OUT_SPEAKER);
     else if (hit(R.b_star, x, y)) toggle_fav();
     else if (hit(R.b_left, x, y)) stop_seek(), tune((u16)(R.freq - reg()->step));
     else if (hit(R.b_right, x, y)) stop_seek(), tune((u16)(R.freq + reg()->step));
@@ -895,8 +781,6 @@ int main(int argc, char **argv) {
     rds_reset(&R.rd);
     // A leftover override (a crash in speaker output) keeps the earphone a microphone-only device:
     // treat it as such, so that switching on in earphone output undoes it.
-    R.enum_mic_only = override_present();
-    if (!SPEAKER_OUTPUT_ENABLED) R.output = OUT_EARPHONE;
 
     Result rc = usbHsInitialize();
     if (R_FAILED(rc)) say("usb:hs를 열 수 없습니다 (%s).", rc_str(rc));
@@ -917,7 +801,6 @@ int main(int argc, char **argv) {
             if (R.dev.state == FMDEV_OPEN && before != FMDEV_OPEN) {
                 sync_from_device();
             } else if (R.dev.state != FMDEV_OPEN && before == FMDEV_OPEN) {
-                if (R.mode == MODE_SPEAKER) spk_stop();
                 R.mode = MODE_OFF;
                 R.seeking = R.scanning = false;
                 say("이어폰 연결이 끊어졌습니다.");
@@ -935,7 +818,6 @@ int main(int argc, char **argv) {
         }
         if (down & HidNpadButton_X) scan_toggle();
         if (down & HidNpadButton_Y) toggle_fav();
-        if (down & HidNpadButton_StickR) set_output(R.output == OUT_SPEAKER ? OUT_EARPHONE : OUT_SPEAKER);
         int dir = (held & HidNpadButton_Right) ? 1 : (held & HidNpadButton_Left) ? -1 : 0;
         if (dir && (down & (HidNpadButton_Right | HidNpadButton_Left))) {
             stop_seek();
@@ -979,11 +861,7 @@ int main(int argc, char **argv) {
         draw();
     }
 
-    if (R.mode == MODE_SPEAKER || quit_off) radio_off();   // speaker output cannot outlive the app
-    if (R.enum_mic_only) {   // give the console its USB output back
-        set_override(false);
-        if (R.dev.state == FMDEV_OPEN) reenumerate();
-    }
+    if (quit_off) radio_off();   // + leaves the radio playing in the earphone
     log_file("exit: radio %s\n", R.mode == MODE_EARPHONE ? "left on in the earphone" : "off");
     settings_save();
     fm_close(&R.dev);

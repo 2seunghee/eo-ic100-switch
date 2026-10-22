@@ -20,7 +20,8 @@
 - **접근 A** (eoprobe, NRO): 홈브루에서 isoc 전송으로 이어폰에 직접 소리를 냈다. isoc 규약은 `BatchBufferAsync(unk1 = 0, unk2 = 절대 시작 프레임)`.
 - **접근 B** (eoaudio, sysmodule): 게임 최종 믹스를 녹음해 이어폰으로 보냈다. 홈 화면과 audout 소리는 녹음되지 않아 한계가 있었다. 지금은 쓰지 않는다.
 - **접근 C-0 → C** (usbhs-logmitm): 드라이버가 멈추는 지점을 기록하고, 디스크립터를 고쳐 써서 해결했다.
-- **FM 라디오** ([switch/eofm](switch/eofm/README.md), 실기기 미검증): 이어폰의 내장 FM 칩을 벤더 요청으로 조작하는 앱.
+- **FM 라디오** ([switch/eofm](switch/eofm/README.md)): 이어폰의 내장 FM 칩을 벤더 요청으로 조작하는 한글 앱. 이어폰 전용이며 채널 찾기, 즐겨찾기가 실기기에서 동작한다. 본체 스피커로 듣기는 오디오 모듈을 중단시켜 뺐다.
+- **리모컨 볼륨** (usbhs-logmitm 0.3.1, 확인 대기): 드라이버가 hid에게서 리모컨을 숨기고 직접 읽어 볼륨을 바꾼다.
 
 ## 구성
 
@@ -37,7 +38,7 @@ switch/eoaudio/              접근 B: 게임 소리 → 이어폰 sysmodule (li
   tests/                     pcm·config·policy 호스트 단위 테스트
 switch/usbhs-logmitm/        접근 C: usb:hs MITM sysmodule (기록 + 디스크립터 고쳐 쓰기). 배포 zip의 내용물
   dist/README.txt            배포 zip에 들어가는 사용자 설명서
-switch/eofm/                 EO-IC100 내장 FM 라디오 앱(NRO, 한글 화면): 이어폰 또는 본체 스피커로 듣기
+switch/eofm/                 EO-IC100 내장 FM 라디오 앱(NRO, 한글 화면, 이어폰 전용). attic/: 시도했다 뺀 스피커 출력
 fixtures/                    공개 lsusb 덤프에서 복원한 EO-IC100 디스크립터
 docs/                        PLAN.md, PC_CAPTURE.md
 dumps/                       실기기 디스크립터 덤프와 usbhs-logmitm 로그(C-0/C 근거)

@@ -1,0 +1,1142 @@
+===== eofm 0.1.3  2026-10-22 16:40:48  HOS 22.1.0 =====
+usbHsInitialize: OK, region kr, freq 9910
+fm: earphone 04e8:a05b seen (device 3), waiting 6000 ms
+fm: acquire IF0 (id 1342242816, device 3): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 0 = 1: OK
+fm: SET 5 = 7: OK
+fm: SET 9 = 9910: OK
+fm: SET 10 = 1: OK
+query: 01 01 b6 26 21 00 00 00 00 00 00 00
+query: 01 01 b6 26 21 00 00 00 00 00 00 00
+signal: set 9910, receiver at 9910 (OK), rssi 00 00 (OK)
+query: 01 01 b6 26 21 00 00 00 00 00 00 00
+query: 01 01 b6 26 21 00 00 00 00 00 00 00
+query: 01 01 b6 26 21 00 00 00 00 00 00 00
+query: 01 01 b6 26 21 00 00 00 00 00 00 00
+query: 01 01 b6 26 21 00 00 00 00 00 00 00
+query: 01 01 b6 26 21 00 00 00 00 00 00 00
+query: 01 01 b6 26 21 00 00 00 00 00 00 00
+query: 01 01 b6 26 21 00 00 00 00 00 00 00
+query: 01 01 b6 26 21 00 00 00 00 00 00 00
+query: 01 01 b6 26 21 00 00 00 00 00 00 00
+fm: SET 7 = 2: OK
+seek: query 01 01 b6 26 21
+seek: query 01 01 b6 26 21
+seek: query 01 01 b6 26 21
+seek: query 01 01 b6 26 21
+seek: query 01 01 b6 26 21
+seek: query 01 01 b6 26 21
+seek: query 01 01 b6 26 21
+seek: query 01 01 b6 26 21
+seek: query 01 01 b6 26 21
+seek: query 00 01 9e 25 26
+seek: stopped at 9630 after 1033 ms
+signal: set 9630, receiver at 9630 (OK), rssi 00 00 (OK)
+fm: SET 7 = 2: OK
+seek: query 00 01 9e 25 26
+seek: stopped at 9630 after 115 ms
+fm: SET 7 = 2: OK
+seek: query 00 01 12 25 1f
+seek: stopped at 9490 after 117 ms
+signal: set 9490, receiver at 9490 (OK), rssi 00 00 (OK)
+fm: SET 7 = 2: OK
+seek: query 00 01 72 24 20
+seek: stopped at 9330 after 116 ms
+signal: set 9330, receiver at 9330 (OK), rssi 00 00 (OK)
+fm: SET 9 = 8750: OK
+fm: SET 7 = 1: OK
+seek: query 00 01 2e 22 15
+seek: stopped at 8750 after 124 ms
+fm: SET 7 = 1: OK
+seek: query 00 01 2e 22 15
+seek: stopped at 8750 after 123 ms
+fm: SET 9 = 8750: OK
+ui: 채널 1개를 찾았습니다.
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+signal: set 8750, receiver at 8750 (OK), rssi 00 00 (OK)
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+fm: SET 9 = 8750: OK
+fm: SET 7 = 1: OK
+seek: query 00 01 2e 22 15
+seek: stopped at 8750 after 124 ms
+fm: SET 7 = 1: OK
+seek: query 00 01 2e 22 15
+seek: stopped at 8750 after 123 ms
+fm: SET 9 = 8750: OK
+ui: 채널 1개를 찾았습니다.
+query: 00 01 2e 22 15 00 00 00 00 00 00 00
+query: 01 01 2e 22 14 00 00 00 00 00 00 00
+query: 02 bf 15 b0 0f 08 03 de 9f e4 a1 00
+query: 02 f9 15 5e 96 ad 4a 26 e5 fb 5e 00
+query: 02 ad 15 b3 8a 2f ad 82 04 dd a4 00
+query: 02 ba 15 7f 7e 95 9d 8c 5d 58 56 00
+query: 02 fd 15 3f 2e d6 d5 30 94 9b 45 00
+fm: SET 9 = 8750: OK
+fm: SET 7 = 1: OK
+seek: query 02 fb 15 4a 8a
+seek: query 02 fb 15 4a 8a
+seek: query 02 fb 15 4a 8a
+seek: query 02 fb 15 4a 8a
+seek: query 00 01 38 22 15
+seek: stopped at 8760 after 518 ms
+fm: SET 7 = 1: OK
+seek: query 00 01 38 22 15
+seek: stopped at 8760 after 124 ms
+fm: SET 9 = 8760: OK
+ui: 채널 1개를 찾았습니다.
+query: 00 01 38 22 15 00 00 00 00 00 00 00
+query: 00 01 38 22 15 00 00 00 00 00 00 00
+query: 00 01 38 22 15 00 00 00 00 00 00 00
+signal: set 8760, receiver at 8760 (OK), rssi 00 00 (OK)
+query: 00 01 38 22 15 00 00 00 00 00 00 00
+fm: SET 9 = 8750: OK
+fm: SET 7 = 1: OK
+seek: query 00 01 38 22 15
+seek: stopped at 8760 after 122 ms
+fm: SET 7 = 1: OK
+seek: query 00 01 38 22 15
+seek: stopped at 8760 after 124 ms
+fm: SET 9 = 8760: OK
+ui: 채널 1개를 찾았습니다.
+query: 00 01 38 22 15 00 00 00 00 00 00 00
+query: 00 01 38 22 15 00 00 00 00 00 00 00
+query: 00 01 38 22 15 00 00 00 00 00 00 00
+query: 00 01 38 22 15 00 00 00 00 00 00 00
+query: 00 01 38 22 15 00 00 00 00 00 00 00
+query: 00 01 38 22 15 00 00 00 00 00 00 00
+query: 02 bb 14 2f 22 96 76 4b a4 e4 f3 00
+query: 02 fb 14 14 6a e8 90 8d d9 ac fc 00
+query: 02 ff 14 2f 53 9e a9 47 49 37 cd 00
+query: 02 e7 15 3f eb 5d 0a 8c 9f 6b 6d 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+fm: SET 9 = 8750: OK
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+signal: set 8750, receiver at 8750 (OK), rssi 00 00 (OK)
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+fm: SET 9 = 8760: OK
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+signal: set 8760, receiver at 8760 (OK), rssi 00 00 (OK)
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+query: 02 ff 15 d8 84 ec db d7 a2 a2 64 00
+fm: SET 7 = 1: OK
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+seek: query 02 ff 15 d8 84
+fm: SET 8 = 0: OK
+seek: nothing at 8760 after 3021 ms
+ui: 방송을 찾지 못했습니다.
+fm: SET 7 = 1: OK
+seek: query 02 b9 13 d5 91
+seek: query 02 b9 13 d5 91
+seek: query 02 b9 13 d5 91
+seek: query 02 b9 13 d5 91
+seek: query 02 b9 13 d5 91
+seek: query 02 b9 13 d5 91
+seek: query 02 b9 13 d5 91
+fm: SET 8 = 0: OK
+fm: SET 7 = 2: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 117 ms
+ui: 방송을 찾지 못했습니다.
+fm: SET 7 = 1: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 117 ms
+ui: 방송을 찾지 못했습니다.
+fm: SET 7 = 1: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 115 ms
+ui: 방송을 찾지 못했습니다.
+fm: SET 7 = 1: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 118 ms
+ui: 방송을 찾지 못했습니다.
+fm: SET 7 = 1: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 116 ms
+ui: 방송을 찾지 못했습니다.
+fm: SET 9 = 8770: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+signal: set 8770, receiver at 8770 (OK), rssi 00 00 (OK)
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 7 = 1: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 128 ms
+ui: 방송을 찾지 못했습니다.
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+signal: set 8760, receiver at 8770 (OK), rssi 00 00 (OK)
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 7 = 1: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 115 ms
+ui: 방송을 찾지 못했습니다.
+fm: SET 7 = 2: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 116 ms
+ui: 방송을 찾지 못했습니다.
+fm: SET 7 = 2: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 115 ms
+ui: 방송을 찾지 못했습니다.
+fm: SET 7 = 1: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 117 ms
+ui: 방송을 찾지 못했습니다.
+fm: SET 9 = 8770: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8780: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+signal: set 8780, receiver at 8780 (OK), rssi 00 00 (OK)
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8790: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8800: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8810: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8820: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8830: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 7 = 1: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 118 ms
+ui: 방송을 찾지 못했습니다.
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+signal: set 8760, receiver at 8830 (OK), rssi 00 00 (OK)
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8770: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+signal: set 8770, receiver at 8770 (OK), rssi 00 00 (OK)
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8780: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8790: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8800: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8810: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8820: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8830: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8840: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8850: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8860: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8870: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8880: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8890: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8900: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8910: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8920: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8930: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 7 = 1: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 118 ms
+ui: 방송을 찾지 못했습니다.
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+signal: set 8760, receiver at 8930 (OK), rssi 00 00 (OK)
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 5 = 6: OK
+ui: 볼륨 6 / 15
+fm: SET 9 = 8750: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+signal: set 8750, receiver at 8750 (OK), rssi 00 00 (OK)
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 5 = 5: OK
+ui: 볼륨 5 / 15
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 5 = 4: OK
+ui: 볼륨 4 / 15
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 01 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 10800: OK
+query: 01 00 2e 22 13 00 00 00 00 00 00 00
+query: 01 00 2e 22 13 00 00 00 00 00 00 00
+query: 01 00 2e 22 13 00 00 00 00 00 00 00
+signal: set 10800, receiver at 10800 (OK), rssi 00 00 (OK)
+query: 01 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 10790: OK
+query: 01 00 2e 22 13 00 00 00 00 00 00 00
+query: 01 00 2e 22 13 00 00 00 00 00 00 00
+query: 01 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 10780: OK
+query: 01 00 2e 22 13 00 00 00 00 00 00 00
+query: 01 00 2e 22 13 00 00 00 00 00 00 00
+query: 01 00 2e 22 13 00 00 00 00 00 00 00
+signal: set 10780, receiver at 10780 (OK), rssi 00 00 (OK)
+fm: SET 7 = 2: OK
+seek: query 01 00 2e 22 13
+seek: query 01 00 2e 22 13
+seek: query 01 00 2e 22 13
+seek: query 01 00 2e 22 13
+seek: query 01 00 2e 22 13
+seek: query 01 00 2e 22 13
+seek: query 01 00 2e 22 13
+seek: query 01 00 2e 22 13
+seek: query 01 00 2e 22 13
+seek: query 01 00 2e 22 13
+seek: query 01 00 2e 22 13
+seek: query 01 00 2e 22 13
+fm: SET 8 = 0: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 7 = 2: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 116 ms
+ui: 방송을 찾지 못했습니다.
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+signal: set 8760, receiver at 8760 (OK), rssi 00 00 (OK)
+fm: SET 7 = 1: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 118 ms
+ui: 방송을 찾지 못했습니다.
+fm: SET 9 = 8750: OK
+fm: SET 7 = 1: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 197 ms
+fm: SET 9 = 8750: OK
+ui: 채널을 찾지 못했습니다. 이어폰 줄을 펴 보세요.
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+signal: set 8750, receiver at 8750 (OK), rssi 00 00 (OK)
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 7 = 1: OK
+seek: query 00 00 38 22 13
+seek: nothing at 8760 after 117 ms
+ui: 방송을 찾지 못했습니다.
+signal: set 8760, receiver at 8750 (OK), rssi 00 00 (OK)
+fm: SET 7 = 1: OK
+seek: query 02 ef 13 78 33
+seek: query 02 ef 13 78 33
+seek: query 02 ef 13 78 33
+seek: query 02 ef 13 78 33
+seek: query 02 ef 13 78 33
+seek: query 02 ef 13 78 33
+seek: query 02 ef 13 78 33
+fm: SET 8 = 0: OK
+fm: SET 9 = 8770: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+signal: set 8770, receiver at 8770 (OK), rssi 00 00 (OK)
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8780: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+signal: set 8780, receiver at 8780 (OK), rssi 00 00 (OK)
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8790: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8800: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8810: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8820: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8830: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8840: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8850: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8860: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8870: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8880: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8890: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8900: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8910: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8920: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8930: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8940: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8950: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8960: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8970: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8980: OK
+query: 00 00 38 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8990: OK
+query: 01 01 1e 23 13 00 00 00 00 00 00 00
+fm: SET 9 = 9000: OK
+query: 01 01 1e 23 13 00 00 00 00 00 00 00
+fm: SET 9 = 9010: OK
+query: 01 01 32 23 16 00 00 00 00 00 00 00
+fm: SET 9 = 9020: OK
+query: 01 01 32 23 16 00 00 00 00 00 00 00
+query: 01 01 3c 23 15 00 00 00 00 00 00 00
+query: 01 01 3c 23 15 00 00 00 00 00 00 00
+signal: set 9020, receiver at 9020 (OK), rssi 00 00 (OK)
+query: 01 01 3c 23 15 00 00 00 00 00 00 00
+query: 01 01 3c 23 15 00 00 00 00 00 00 00
+query: 01 01 3c 23 15 00 00 00 00 00 00 00
+query: 01 01 3c 23 15 00 00 00 00 00 00 00
+query: 01 01 3c 23 15 00 00 00 00 00 00 00
+fm: SET 9 = 9010: OK
+query: 01 01 3c 23 15 00 00 00 00 00 00 00
+query: 01 01 32 23 1d 00 00 00 00 00 00 00
+query: 01 01 32 23 1d 00 00 00 00 00 00 00
+signal: set 9010, receiver at 9010 (OK), rssi 00 00 (OK)
+fm: SET 9 = 9000: OK
+query: 01 01 32 23 1d 00 00 00 00 00 00 00
+query: 01 01 32 23 1d 00 00 00 00 00 00 00
+query: 01 01 28 23 17 00 00 00 00 00 00 00
+query: 01 01 28 23 17 00 00 00 00 00 00 00
+signal: set 9000, receiver at 9000 (OK), rssi 00 00 (OK)
+query: 01 01 28 23 17 00 00 00 00 00 00 00
+query: 01 01 28 23 17 00 00 00 00 00 00 00
+query: 01 01 28 23 17 00 00 00 00 00 00 00
+fm: SET 9 = 9010: OK
+query: 01 01 28 23 17 00 00 00 00 00 00 00
+query: 01 01 32 23 1e 00 00 00 00 00 00 00
+query: 01 01 32 23 1e 00 00 00 00 00 00 00
+signal: set 9010, receiver at 9010 (OK), rssi 00 00 (OK)
+query: 01 01 32 23 1e 00 00 00 00 00 00 00
+query: 01 01 32 23 1e 00 00 00 00 00 00 00
+query: 01 01 32 23 1e 00 00 00 00 00 00 00
+query: 01 01 32 23 1e 00 00 00 00 00 00 00
+query: 01 01 32 23 1e 00 00 00 00 00 00 00
+query: 01 01 32 23 1e 00 00 00 00 00 00 00
+query: 01 01 32 23 1e 00 00 00 00 00 00 00
+query: 01 01 32 23 1e 00 00 00 00 00 00 00
+query: 01 01 32 23 1e 00 00 00 00 00 00 00
+override: microphone only (speaker output)
+fm: SET 0 = 0: OK
+ui: 스피커로 바꾸는 중... 이어폰이 다시 연결됩니다.
+fm: reset the earphone: OK
+fm: earphone re-enumerated or not answering (device 3 -> 4, 0 failures)
+fm: released IF0 (id 1342242816)
+fm: earphone 04e8:a05b seen (device 4), waiting 6000 ms
+ui: 이어폰 연결이 끊어졌습니다.
+fm: acquire IF0 (id 1342570496, device 4): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 14 = 1: OK
+fm: SET 5 = 15: OK
+fm: SET 9 = 9010: OK
+fm: SET 10 = 1: OK
+speaker: audio inputs (OK): 2
+speaker:   [0] BuiltInHeadset
+speaker:   [1] Uac_0
+speaker: open Uac_0: OK -> UacIn, 48000 Hz, 2 ch, format 2
+speaker: active output speaker (OK)
+speaker: start audin OK, audout OK
+query: 01 01 32 23 1e 00 00 00 00 00 00 00
+query: 01 01 32 23 20 00 00 00 00 00 00 00
+query: 01 01 32 23 20 00 00 00 00 00 00 00
+signal: set 9010, receiver at 9010 (OK), rssi 00 00 (OK)
+query: 01 01 32 23 20 00 00 00 00 00 00 00
+query: 01 01 32 23 20 00 00 00 00 00 00 00
+query: 01 01 32 23 20 00 00 00 00 00 00 00
+query: 01 01 32 23 20 00 00 00 00 00 00 00
+query: 01 01 32 23 20 00 00 00 00 00 00 00
+query: 01 01 32 23 20 00 00 00 00 00 00 00
+query: 01 01 32 23 20 00 00 00 00 00 00 00
+query: 01 01 32 23 20 00 00 00 00 00 00 00
+query: 01 01 32 23 20 00 00 00 00 00 00 00
+speaker: no audio from the USB microphone for 3 s
+speaker: 0.0 s played, peak -99 dBFS, 0 dropped
+fm: SET 9 = 9020: OK
+query: 01 01 32 23 20 00 00 00 00 00 00 00
+query: 01 01 3c 23 11 00 00 00 00 00 00 00
+query: 01 01 3c 23 11 00 00 00 00 00 00 00
+signal: set 9020, receiver at 9020 (OK), rssi 00 00 (OK)
+query: 01 01 3c 23 11 00 00 00 00 00 00 00
+fm: SET 9 = 9030: OK
+speaker: 0.0 s played, peak -99 dBFS, 0 dropped
+query: 01 01 3c 23 11 00 00 00 00 00 00 00
+fm: SET 9 = 9040: OK
+query: 01 01 50 23 10 00 00 00 00 00 00 00
+fm: SET 9 = 9050: OK
+query: 01 01 50 23 10 00 00 00 00 00 00 00
+fm: SET 9 = 9060: OK
+query: 01 01 64 23 0f 00 00 00 00 00 00 00
+fm: SET 9 = 9070: OK
+query: 01 01 64 23 0f 00 00 00 00 00 00 00
+fm: SET 9 = 9080: OK
+query: 01 01 78 23 0f 00 00 00 00 00 00 00
+fm: SET 9 = 9090: OK
+query: 01 01 78 23 0f 00 00 00 00 00 00 00
+fm: SET 9 = 9100: OK
+query: 01 01 8c 23 10 00 00 00 00 00 00 00
+fm: SET 9 = 9110: OK
+query: 01 01 8c 23 10 00 00 00 00 00 00 00
+fm: SET 9 = 9120: OK
+query: 01 01 a0 23 0f 00 00 00 00 00 00 00
+fm: SET 9 = 9130: OK
+query: 01 01 a0 23 0f 00 00 00 00 00 00 00
+fm: SET 9 = 9140: OK
+query: 01 01 aa 23 20 00 00 00 00 00 00 00
+fm: SET 9 = 9150: OK
+query: 01 01 be 23 18 00 00 00 00 00 00 00
+fm: SET 9 = 9160: OK
+query: 01 01 be 23 18 00 00 00 00 00 00 00
+fm: SET 9 = 9170: OK
+query: 01 01 d2 23 10 00 00 00 00 00 00 00
+fm: SET 9 = 9180: OK
+query: 01 01 d2 23 10 00 00 00 00 00 00 00
+fm: SET 9 = 9190: OK
+query: 01 01 e6 23 23 00 00 00 00 00 00 00
+fm: SET 9 = 9200: OK
+query: 01 01 e6 23 23 00 00 00 00 00 00 00
+fm: SET 9 = 9210: OK
+query: 01 01 fa 23 1b 00 00 00 00 00 00 00
+fm: SET 9 = 9220: OK
+query: 01 01 fa 23 1b 00 00 00 00 00 00 00
+fm: SET 9 = 9230: OK
+query: 01 01 0e 24 0f 00 00 00 00 00 00 00
+fm: SET 9 = 9240: OK
+query: 01 01 0e 24 0f 00 00 00 00 00 00 00
+query: 01 01 18 24 10 00 00 00 00 00 00 00
+fm: SET 9 = 9340: OK
+query: 01 01 18 24 10 00 00 00 00 00 00 00
+query: 01 01 7c 24 15 00 00 00 00 00 00 00
+query: 01 01 7c 24 15 00 00 00 00 00 00 00
+fm: SET 9 = 9440: OK
+query: 01 01 7c 24 15 00 00 00 00 00 00 00
+query: 01 01 e0 24 10 00 00 00 00 00 00 00
+fm: SET 9 = 9540: OK
+query: 01 01 e0 24 10 00 00 00 00 00 00 00
+query: 01 01 44 25 0f 00 00 00 00 00 00 00
+fm: SET 9 = 9640: OK
+query: 01 01 44 25 0f 00 00 00 00 00 00 00
+query: 01 01 a8 25 1b 00 00 00 00 00 00 00
+fm: SET 9 = 9740: OK
+query: 01 01 a8 25 1b 00 00 00 00 00 00 00
+query: 01 01 0c 26 10 00 00 00 00 00 00 00
+fm: SET 9 = 9840: OK
+query: 01 01 0c 26 10 00 00 00 00 00 00 00
+query: 01 01 70 26 10 00 00 00 00 00 00 00
+fm: SET 9 = 9940: OK
+query: 01 01 70 26 10 00 00 00 00 00 00 00
+query: 01 01 d4 26 0d 00 00 00 00 00 00 00
+query: 01 01 d4 26 0d 00 00 00 00 00 00 00
+signal: set 9940, receiver at 9940 (OK), rssi 00 00 (OK)
+query: 01 01 d4 26 0d 00 00 00 00 00 00 00
+fm: SET 9 = 9930: OK
+query: 01 01 d4 26 0d 00 00 00 00 00 00 00
+query: 01 01 ca 26 0d 00 00 00 00 00 00 00
+fm: SET 9 = 9920: OK
+query: 01 01 ca 26 0d 00 00 00 00 00 00 00
+fm: SET 9 = 9910: OK
+query: 01 01 c0 26 0f 00 00 00 00 00 00 00
+query: 01 01 c0 26 0f 00 00 00 00 00 00 00
+query: 01 01 b6 26 18 00 00 00 00 00 00 00
+signal: set 9910, receiver at 9910 (OK), rssi 00 00 (OK)
+query: 01 01 b6 26 18 00 00 00 00 00 00 00
+query: 01 01 b6 26 18 00 00 00 00 00 00 00
+query: 01 01 b6 26 18 00 00 00 00 00 00 00
+speaker: 0.0 s played, peak -99 dBFS, 0 dropped
+query: 01 01 b6 26 18 00 00 00 00 00 00 00
+query: 01 01 b6 26 18 00 00 00 00 00 00 00
+query: 01 01 b6 26 18 00 00 00 00 00 00 00
+override: removed (earphone is the output)
+speaker: stopped after 0 frames (0 buffers dropped)
+fm: SET 14 = 0: OK
+ui: 이어폰으로 바꾸는 중... 이어폰이 다시 연결됩니다.
+fm: reset the earphone: OK
+fm: earphone re-enumerated or not answering (device 4 -> 5, 0 failures)
+fm: released IF0 (id 1342570496)
+fm: earphone 04e8:a05b seen (device 5), waiting 6000 ms
+ui: 이어폰 연결이 끊어졌습니다.
+ui: 이어폰을 준비하는 중입니다. 잠시 후 다시 누르세요.
+ui: 이어폰을 준비하는 중입니다. 잠시 후 다시 누르세요.
+ui: 이어폰을 준비하는 중입니다. 잠시 후 다시 누르세요.
+fm: acquire IF0 (id 1342898176, device 5): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 0 = 1: OK
+fm: SET 5 = 4: OK
+fm: SET 9 = 9910: OK
+fm: SET 10 = 1: OK
+query: 01 01 b6 26 18 00 00 00 00 00 00 00
+query: 01 01 b6 26 18 00 00 00 00 00 00 00
+query: 01 01 b6 26 17 00 00 00 00 00 00 00
+query: 01 01 b6 26 17 00 00 00 00 00 00 00
+signal: set 9910, receiver at 9910 (OK), rssi 00 00 (OK)
+query: 01 01 b6 26 17 00 00 00 00 00 00 00
+query: 01 01 b6 26 17 00 00 00 00 00 00 00
+query: 01 01 b6 26 17 00 00 00 00 00 00 00
+query: 01 01 b6 26 17 00 00 00 00 00 00 00
+query: 01 01 b6 26 17 00 00 00 00 00 00 00
+query: 01 01 b6 26 17 00 00 00 00 00 00 00
+query: 01 01 b6 26 17 00 00 00 00 00 00 00
+query: 01 01 b6 26 17 00 00 00 00 00 00 00
+fm: SET 9 = 10010: OK
+query: 01 01 b6 26 17 00 00 00 00 00 00 00
+query: 01 01 1a 27 10 00 00 00 00 00 00 00
+query: 01 01 1a 27 10 00 00 00 00 00 00 00
+signal: set 10010, receiver at 10010 (OK), rssi 00 00 (OK)
+query: 01 01 1a 27 10 00 00 00 00 00 00 00
+query: 01 01 1a 27 10 00 00 00 00 00 00 00
+query: 01 01 1a 27 10 00 00 00 00 00 00 00
+query: 01 01 1a 27 10 00 00 00 00 00 00 00
+query: 01 01 1a 27 10 00 00 00 00 00 00 00
+query: 01 01 1a 27 10 00 00 00 00 00 00 00
+query: 01 01 1a 27 10 00 00 00 00 00 00 00
+query: 01 01 1a 27 10 00 00 00 00 00 00 00
+query: 01 01 1a 27 10 00 00 00 00 00 00 00
+fm: SET 9 = 9910: OK
+query: 01 01 1a 27 10 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+signal: set 9910, receiver at 9910 (OK), rssi 00 00 (OK)
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+fm: SET 9 = 8750: OK
+fm: SET 7 = 1: OK
+seek: query 00 01 2e 22 10
+seek: stopped at 8750 after 123 ms
+fm: SET 7 = 1: OK
+seek: query 00 01 2e 22 10
+seek: stopped at 8750 after 121 ms
+fm: SET 9 = 8750: OK
+ui: 채널 1개를 찾았습니다.
+query: 00 01 2e 22 10 00 00 00 00 00 00 00
+query: 00 01 2e 22 10 00 00 00 00 00 00 00
+query: 00 01 2e 22 10 00 00 00 00 00 00 00
+signal: set 8750, receiver at 8750 (OK), rssi 00 00 (OK)
+query: 00 01 2e 22 10 00 00 00 00 00 00 00
+query: 00 01 2e 22 10 00 00 00 00 00 00 00
+query: 00 01 2e 22 10 00 00 00 00 00 00 00
+query: 00 01 2e 22 10 00 00 00 00 00 00 00
+query: 00 01 2e 22 10 00 00 00 00 00 00 00
+query: 00 01 2e 22 10 00 00 00 00 00 00 00
+query: 00 01 2e 22 10 00 00 00 00 00 00 00
+query: 00 01 2e 22 10 00 00 00 00 00 00 00
+query: 00 01 2e 22 10 00 00 00 00 00 00 00
+fm: SET 9 = 8760: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+signal: set 8760, receiver at 8760 (OK), rssi 00 00 (OK)
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8770: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+signal: set 8770, receiver at 8770 (OK), rssi 00 00 (OK)
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8780: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+signal: set 8780, receiver at 8780 (OK), rssi 00 00 (OK)
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8790: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8800: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8810: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8820: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8830: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8840: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8850: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8860: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8870: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8880: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8890: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8900: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8910: OK
+fm: SET 9 = 8920: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8930: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8940: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8950: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8960: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8970: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8980: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 8990: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+signal: set 8990, receiver at 8990 (OK), rssi 00 00 (OK)
+fm: SET 9 = 9000: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+fm: SET 9 = 9010: OK
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+signal: set 9010, receiver at 9010 (OK), rssi 00 00 (OK)
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 02 ef 13 77 be fb 2b 19 1d d4 76 00
+query: 01 01 32 23 13 00 00 00 00 00 00 00
+query: 02 ef 14 2c fe 93 88 56 ef 3d c9 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9020: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+signal: set 9020, receiver at 9020 (OK), rssi 00 00 (OK)
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9010: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+signal: set 9010, receiver at 9010 (OK), rssi 00 00 (OK)
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9020: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+signal: set 9020, receiver at 9020 (OK), rssi 00 00 (OK)
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9030: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9040: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9050: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9060: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9070: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9080: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9090: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9100: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9110: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9120: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9130: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9140: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9150: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9160: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9170: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9180: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+signal: set 9180, receiver at 9180 (OK), rssi 00 00 (OK)
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9280: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+signal: set 9280, receiver at 9280 (OK), rssi 00 00 (OK)
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9380: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9480: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9580: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9680: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9780: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9880: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9980: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+signal: set 9980, receiver at 9980 (OK), rssi 00 00 (OK)
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9970: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9960: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9950: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9940: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9930: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9920: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 9910: OK
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+signal: set 9910, receiver at 9910 (OK), rssi 00 00 (OK)
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+query: 02 ef 13 07 87 e9 c5 bd 57 4c a5 00
+fm: SET 9 = 8750: OK
+fm: SET 7 = 1: OK
+seek: query 02 ef 13 07 87
+seek: query 02 ef 13 07 87
+seek: query 02 ef 13 07 87
+seek: query 02 ef 13 07 87
+seek: query 02 ef 13 07 87
+seek: query 02 ef 13 07 87
+seek: query 02 ef 13 07 87
+fm: SET 8 = 0: OK
+ui: 채널 찾기를 멈췄습니다. 0개 찾음.
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+signal: set 8750, receiver at 8750 (OK), rssi 00 00 (OK)
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8760: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+signal: set 8760, receiver at 8760 (OK), rssi 00 00 (OK)
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8770: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8780: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8790: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8800: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8810: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8820: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8830: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8840: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8850: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8860: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8870: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8880: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8890: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8900: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8910: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8920: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8930: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8940: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8950: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8960: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8970: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8980: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 8990: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 9000: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+signal: set 9000, receiver at 9000 (OK), rssi 00 00 (OK)
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 9 = 9010: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+signal: set 9010, receiver at 9010 (OK), rssi 00 00 (OK)
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+fm: SET 0 = 0: OK
+fm: SET 0 = 1: OK
+fm: SET 5 = 4: OK
+fm: SET 9 = 9010: OK
+fm: SET 10 = 1: OK
+query: 00 00 2e 22 13 00 00 00 00 00 00 00
+query: 01 01 32 23 1f 00 00 00 00 00 00 00
+query: 01 01 32 23 1f 00 00 00 00 00 00 00
+query: 01 01 32 23 1f 00 00 00 00 00 00 00
+signal: set 9010, receiver at 9010 (OK), rssi 00 00 (OK)
+query: 01 01 32 23 1f 00 00 00 00 00 00 00
+query: 01 01 32 23 1f 00 00 00 00 00 00 00
+query: 01 01 32 23 1f 00 00 00 00 00 00 00
+query: 01 01 32 23 1f 00 00 00 00 00 00 00
+query: 01 01 32 23 1f 00 00 00 00 00 00 00
+query: 01 01 32 23 1f 00 00 00 00 00 00 00
+query: 01 01 32 23 1f 00 00 00 00 00 00 00
+query: 01 01 32 23 1f 00 00 00 00 00 00 00
+fm: SET 9 = 9110: OK
+query: 01 01 32 23 1f 00 00 00 00 00 00 00
+query: 01 01 96 23 13 00 00 00 00 00 00 00
+fm: SET 9 = 9210: OK
+query: 01 01 96 23 13 00 00 00 00 00 00 00
+query: 01 01 fa 23 13 00 00 00 00 00 00 00
+fm: SET 9 = 9310: OK
+query: 01 01 fa 23 13 00 00 00 00 00 00 00
+query: 01 01 5e 24 12 00 00 00 00 00 00 00
+fm: SET 9 = 9410: OK
+query: 01 01 5e 24 12 00 00 00 00 00 00 00
+query: 01 01 c2 24 12 00 00 00 00 00 00 00
+fm: SET 9 = 9510: OK
+query: 01 01 c2 24 12 00 00 00 00 00 00 00
+query: 01 01 26 25 12 00 00 00 00 00 00 00
+fm: SET 9 = 9610: OK
+query: 01 01 26 25 12 00 00 00 00 00 00 00
+fm: SET 9 = 9710: OK
+query: 01 01 8a 25 17 00 00 00 00 00 00 00
+query: 01 01 8a 25 17 00 00 00 00 00 00 00
+fm: SET 9 = 9810: OK
+query: 01 01 ee 25 12 00 00 00 00 00 00 00
+query: 01 01 52 26 12 00 00 00 00 00 00 00
+fm: SET 9 = 9910: OK
+query: 01 01 52 26 12 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+signal: set 9910, receiver at 9910 (OK), rssi 00 00 (OK)
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+override: microphone only (speaker output)
+fm: SET 0 = 0: OK
+ui: 스피커로 바꾸는 중... 이어폰이 다시 연결됩니다.
+fm: reset the earphone: OK
+fm: earphone re-enumerated or not answering (device 5 -> 6, 0 failures)
+fm: released IF0 (id 1342898176)
+fm: earphone 04e8:a05b seen (device 6), waiting 6000 ms
+ui: 이어폰 연결이 끊어졌습니다.
+fm: acquire IF0 (id 1343225856, device 6): OK
+fm: power 0, recording 0, protocol 1.7
+fm: SET 14 = 1: OK
+fm: SET 5 = 15: OK
+fm: SET 9 = 9910: OK
+fm: SET 10 = 1: OK
+speaker: audio inputs (OK): 2
+speaker:   [0] BuiltInHeadset
+speaker:   [1] Uac_1
+speaker: open Uac_1: OK -> UacIn, 48000 Hz, 2 ch, format 2
+speaker: active output speaker (OK)
+speaker: start audin OK, audout OK
+query: 01 01 b6 26 1d 00 00 00 00 00 00 00
+query: 01 01 b6 26 1f 00 00 00 00 00 00 00
+query: 01 01 b6 26 1f 00 00 00 00 00 00 00
+signal: set 9910, receiver at 9910 (OK), rssi 00 00 (OK)
+query: 01 01 b6 26 1f 00 00 00 00 00 00 00
+query: 01 01 b6 26 1f 00 00 00 00 00 00 00
+query: 01 01 b6 26 1f 00 00 00 00 00 00 00
+query: 01 01 b6 26 1f 00 00 00 00 00 00 00
+query: 01 01 b6 26 1f 00 00 00 00 00 00 00
+query: 01 01 b6 26 1f 00 00 00 00 00 00 00
+query: 01 01 b6 26 1f 00 00 00 00 00 00 00
+query: 01 01 b6 26 1f 00 00 00 00 00 00 00
+query: 01 01 b6 26 1f 00 00 00 00 00 00 00
+speaker: no audio from the USB microphone for 3 s
+speaker: 0.0 s played, peak -99 dBFS, 0 dropped
+speaker: stopped after 0 frames (0 buffers dropped)
+fm: SET 14 = 0: OK
+override: removed (earphone is the output)
+fm: reset the earphone: OK
+exit: radio off
+fm: released IF0 (id 1343225856)
