@@ -83,6 +83,9 @@ int main(int argc, char **argv) {
     u32 v = hosversionGet();
     log_printf("usbhs-logmitm %s: HOS %u.%u.%u, SD %s", USBHSLOG_VERSION, HOSVER_MAJOR(v), HOSVER_MINOR(v),
                HOSVER_MICRO(v), g_sd_ok ? "OK" : "NOT MOUNTED");
+    // An override is an app's request for this boot only (eofm's speaker output). One left by a crash
+    // kept the earphone away from the audio sysmodule after the reboot, so it goes now.
+    if (g_sd_ok && remove(APP_DIR "/rewrite_override.txt") == 0) log_printf("removed a leftover rewrite_override.txt");
     if (g_sd_ok && read_file(CONFIG_PATH, text, sizeof(text)) >= 0) {
         int problems = config_parse(&cfg, text, config_warn);
         if (problems) log_printf("config: %d problem(s), see above", problems);

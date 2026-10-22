@@ -313,10 +313,10 @@ static void radio_on(void) {
     }
 }
 
-// Speaker output was switched off in 0.1.7 after the audin path crashed the audio sysmodule
-// (fatal 2003-0501 in 0100000000000014, 0.1.6). 0.2.0 reads the microphone over USB itself
-// (speaker.c) and never touches audin.
-#define SPEAKER_OUTPUT_ENABLED 1
+// Speaker output is switched off. 0.1.6 went through audin and crashed the audio sysmodule (fatal
+// 2003-0501); 0.2.0 had usbhs-logmitm hide the earphone from audio, which then acquired the emptied
+// list slots and crashed too (Data Abort, 0.3.0). Both are dead ends; see docs/PLAN.md.
+#define SPEAKER_OUTPUT_ENABLED 0
 
 static void set_output(int out) {
     if (out == OUT_SPEAKER && !SPEAKER_OUTPUT_ENABLED) {

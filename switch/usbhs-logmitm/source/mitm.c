@@ -419,11 +419,10 @@ static void override_text(char *text, size_t size) {
 
 // "hide": the audio sysmodule does not see the EO-IC100 at all (eofm's speaker output takes its
 // microphone itself, and the console plays on its speaker as no USB output exists).
-static bool audio_hidden(void) {
-    char text[64];
-    override_text(text, sizeof(text));
-    return !strcmp(text, "hide");
-}
+// Switched off (0.3.1): with the earphone left out of its list, the audio sysmodule acquired the
+// emptied slots (interface ID 0, eight times) and then crashed on a null pointer (0.3.0 on the
+// console, fatal in 0100000000000014 and then in qlaunch). It does not trust the count.
+static bool audio_hidden(void) { return false; }
 
 static unsigned current_rules(bool *overridden) {
     *overridden = false;

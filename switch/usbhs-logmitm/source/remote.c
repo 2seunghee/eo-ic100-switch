@@ -97,12 +97,25 @@ static void serve(UsbHsInterface *it) {
         if (R_FAILED(rc)) break;
         // Wait for a report; every second check that the earphone is still there.
         for (;;) {
-            if (R_SUCCEEDED(eventWait(usbHsEpGetXferEvent(&ep), WAIT_NS))) break;
-            static UsbHsInterface held[8];   // what this process holds: IF3 drops out when unplugged
+            Result wr = eventWait(usbHsEpGetXferEvent(&ep), WAIT_NS);
+            if (R_SUCCEEDED(wr)) break;
+            if (wr != KERNELRESULT(TimedOut)) {   // 0.3.0 saw it return at once: do not spin
+                log_printf("remote: waiting for a report: %s", rc_str(wr));
+                svcSleepThread(200000000ULL);
+            }
+            // Still plugged in? The same plug-in keeps its device number and insertion time. (Not
+            // the interface ID: a held interface is listed with another one - 0.3.0 dropped IF3
+            // right after taking it, every 5 s.)
+            static UsbHsInterface all[16];
+            UsbHsInterfaceFilter f;
+            memset(&f, 0, sizeof(f));
+            f.Flags = UsbHsInterfaceFilterFlags_idVendor;
+            f.idVendor = 0x04E8;
             s32 n = 0;
             bool present = false;
-            if (R_SUCCEEDED(usbHsQueryAcquiredInterfaces(held, sizeof(held), &n)))
-                for (s32 i = 0; i < n; i++) present |= held[i].inf.ID == it->inf.ID;
+            if (R_SUCCEEDED(usbHsQueryAllInterfaces(&f, all, sizeof(all), &n)))
+                for (s32 i = 0; i < n; i++)
+                    present |= all[i].deviceID == it->deviceID && all[i].timestamp == it->timestamp;
             if (!present) goto gone;
         }
         eventClear(usbHsEpGetXferEvent(&ep));
