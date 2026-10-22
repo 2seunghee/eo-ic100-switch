@@ -126,14 +126,21 @@ static void play(const AudioInBuffer *in) {
     mutexUnlock(&S.lock);
 }
 
+// Polls for captured buffers: after the input is reopened on the earphone's microphone, libnx's
+// buffer event still belongs to the default input it opened first, so it never fires.
 static void pump(void *arg) {
-    u64 last_ok = now_ms();
+    u64 last_ok = now_ms(), last_report = now_ms();
     while (!S.stop) {
         AudioInBuffer *rel = NULL;
         u32 n = 0;
-        Result rc = audinWaitCaptureFinish(&rel, &n, 100000000ULL);
+        Result rc = audinGetReleasedAudioInBuffer(&rel, &n);
+        if (now_ms() - last_report >= 5000) {
+            last_report = now_ms();
+            log_file("speaker: %.1f s played, peak %d dBFS, %u dropped\n", S.st.frames / 48000.0, S.st.peak_db, S.st.dropped);
+        }
         if (R_FAILED(rc) || !n || !rel) {
             if (now_ms() - last_ok > 3000 && !S.st.error[0]) set_error("no audio from the USB microphone for 3 s", 0);
+            svcSleepThread(2000000ULL);
             continue;
         }
         while (rel && n) {
@@ -176,10 +183,33 @@ bool spk_start(void) {
     rc = audinListAudioIns(&names[0][0], 4, &count);
     log_file("speaker: audio inputs (%s): %u\n", rc_str(rc), count);
     for (u32 i = 0; i < count && i < 4; i++) log_file("speaker:   [%u] %.255s\n", i, names[i]);
-    S.st.in_rate = audinGetSampleRate();
-    S.st.in_channels = audinGetChannelCount();
-    log_file("speaker: default input: %u Hz, %u ch, format %d\n", S.st.in_rate, S.st.in_channels, audinGetPcmFormat());
-    if (S.st.in_rate != 48000 || S.st.in_channels != 2 || audinGetPcmFormat() != PcmFormat_Int16) {
+    // libnx opened the default input ("BuiltInHeadset", 0.1.2 on the console); the earphone's
+    // microphone is listed as "Uac_<n>". Reopen on that one.
+    int uac = -1;
+    for (u32 i = 0; i < count && i < 4; i++)
+        if (!strncmp(names[i], "Uac", 3)) uac = (int)i;
+    if (uac < 0) {
+        set_error("the earphone's microphone is not among the audio inputs", 0);
+        audinExit();
+        S.audin_ok = false;
+        return false;
+    }
+    serviceClose(audinGetServiceSession_AudioIn());
+    char opened[0x100] = {0};
+    u32 rate = 0, ch = 0;
+    PcmFormat fmt = PcmFormat_Invalid;
+    AudioInState ast;
+    rc = audinOpenAudioIn(names[uac], opened, 48000, 2, &rate, &ch, &fmt, &ast);
+    log_file("speaker: open %s: %s -> %.255s, %u Hz, %u ch, format %d\n", names[uac], rc_str(rc), opened, rate, ch, fmt);
+    S.st.in_rate = rate;
+    S.st.in_channels = ch;
+    if (R_FAILED(rc)) {
+        set_error("opening the earphone's microphone failed", rc);
+        audinExit();
+        S.audin_ok = false;
+        return false;
+    }
+    if (S.st.in_rate != 48000 || S.st.in_channels != 2 || fmt != PcmFormat_Int16) {
         set_error("the audio input is not 48 kHz 16-bit stereo", 0);
         audinExit();
         S.audin_ok = false;

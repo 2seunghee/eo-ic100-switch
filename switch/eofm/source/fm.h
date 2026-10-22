@@ -43,3 +43,5 @@ void fm_close(fm_dev *d);
 Result fm_set(fm_dev *d, u16 cmd, u16 value);
 Result fm_get(fm_dev *d, u16 cmd, u8 out[2]);
 Result fm_query(fm_dev *d, u8 out[12], u32 *got);
+// Re-enumerates the earphone (usbHsIfResetDevice): it goes away and comes back as a new plug-in.
+Result fm_reset(fm_dev *d);

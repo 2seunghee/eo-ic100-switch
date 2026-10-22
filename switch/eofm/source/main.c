@@ -61,18 +61,20 @@ static struct {
     u8         spk_volume;    // receiver volume in speaker output (capture level), 0..15
     bool       mute, mono, rds;
     u8         rssi;
-    bool       seeking;       // L/R-style seek: sweep to the next station
-    bool       scanning;      // 채널 찾기: sweep the whole band
-    int        sweep_dir;
-    u16        sweep_from;    // where a seek started (one lap at most)
-    u64        sweep_next;    // when to read the signal at the current step
-    u8         sweep_rssi[256];
-    int        sweep_n;
-    u16        seek_best;
-    u8         seek_best_rssi;
-    int        noise;         // median signal of the last scan (-1 = unknown)
-    int        margin;        // a station stands this far above the noise
+    bool       seeking;       // the receiver seeks; the app watches its channel
+    bool       scanning;      // 채널 찾기: seek up again and again through the band
+    int        seek_dir;
+    u64        seek_since;
+    u16        seek_last;     // channel at the last poll
+    bool       seek_moved;
+    int        seek_stable;   // polls on the same channel since it last moved
+    u64        sweep_next;    // next seek poll
+    u16        scan_last;     // highest station found so far by 채널 찾기
+    int        noise, margin; // kept in settings.ini for a later signal-based scan
     u16        rssi_logged;   // last frequency whose signal went to the log
+    int        query_logs;    // QUERY answers logged since the last tune
+    bool       enum_mic_only; // this plug-in was enumerated as a microphone only (speaker output)
+    bool       pending_on;    // switch the radio on once the earphone is back (after an output switch)
     u16        fav[MAX_LIST];
     int        nfav;
     u16        ch[MAX_LIST];
@@ -192,15 +194,46 @@ static void list_insert(u16 *l, int *n, u16 f) {
 
 // ------------------------------------------------------------------ radio
 
-// Reads back where the receiver really is and how strong the signal is, into the log (each
-// frequency once): v0.1.0 heard only noise even on a known station, and the log had no way to
-// tell a tuning problem from a reception problem.
+// Speaker output needs the console to not take the earphone as its audio output, or the system
+// keeps playing to USB whatever audctl is told (eofm 0.1.2 on the console: "SetOutputTarget OK ->
+// active USB"). usbhs-logmitm reads this file when the earphone enumerates and then rewrites only
+// the microphone's terminal type: the earphone comes back as a USB microphone only, and the
+// console plays on its speaker. The earphone is re-enumerated (ResetDevice) to apply it.
+#define OVERRIDE_PATH "sdmc:/switch/usbhs-logmitm/rewrite_override.txt"
+
+static bool override_present(void) {
+    FILE *f = fopen(OVERRIDE_PATH, "rb");
+    if (f) fclose(f);
+    return f != NULL;
+}
+
+static void set_override(bool mic_only) {
+    if (mic_only) {
+        FILE *f = fopen(OVERRIDE_PATH, "wb");
+        if (f) {
+            fputs("it_mic\n", f);
+            fclose(f);
+        }
+    } else {
+        remove(OVERRIDE_PATH);
+    }
+    log_file("override: %s\n", mic_only ? "microphone only (speaker output)" : "removed (earphone is the output)");
+}
+
+// Re-enumerates the earphone so that the audio sysmodule reads its descriptors again. The receiver
+// loses its state with it; R.pending_on switches the radio on again once IF0 is back.
+static void reenumerate(void) {
+    Result rc = fm_reset(&R.dev);
+    log_file("fm: reset the earphone: %s\n", rc_str(rc));
+}
+
 static void log_signal(void) {
     u8 c[2] = {0, 0}, s[2] = {0, 0};
     Result rc = fm_get(&R.dev, FM_GET_CHANNEL, c);
     Result rs = fm_get(&R.dev, FM_GET_RSSI, s);
     if (R_SUCCEEDED(rs)) R.rssi = s[0];
-    log_file("signal: set %u, receiver at %u (%s), rssi %u (%s)\n", R.freq, c[0] | c[1] << 8, rc_str(rc), s[0], rc_str(rs));
+    log_file("signal: set %u, receiver at %u (%s), rssi %02x %02x (%s)\n", R.freq, c[0] | c[1] << 8, rc_str(rc), s[0], s[1],
+             rc_str(rs));
     R.rssi_logged = R.freq;
 }
 
@@ -211,18 +244,11 @@ static void tune(u16 f) {
     rds_reset(&R.rd);
     if (R.mode != MODE_OFF) fm_set(&R.dev, FM_SET_CHANNEL, f);
     R.last_rssi = now_ms();   // the signal is read (and logged) a moment after the tune settles
-}
-
-// Steps of the current region, wrapping at the band edges.
-static u16 next_freq(u16 f, int dir) {
-    int n = (int)f + dir * reg()->step;
-    if (n > reg()->max) n = reg()->min;
-    if (n < reg()->min) n = reg()->max;
-    return (u16)n;
+    R.query_logs = 0;
 }
 
 static void stop_seek(void) {
-    if ((R.seeking || R.scanning) && R.mode != MODE_OFF) fm_set(&R.dev, FM_SET_MUTE, R.mute);   // un-mute
+    if (R.seeking && R.mode != MODE_OFF) fm_set(&R.dev, FM_SET_SEEK_STOP, 0);
     R.seeking = R.scanning = false;
 }
 
@@ -243,6 +269,16 @@ static void radio_on(void) {
         return;
     }
     radio_mode m = R.output == OUT_SPEAKER ? MODE_SPEAKER : MODE_EARPHONE;
+    // Speaker output needs the earphone enumerated as a microphone only (see set_override).
+    if ((m == MODE_SPEAKER) != R.enum_mic_only) {
+        set_override(m == MODE_SPEAKER);
+        R.enum_mic_only = m == MODE_SPEAKER;
+        R.pending_on = true;
+        radio_off();
+        say(m == MODE_SPEAKER ? "스피커로 바꾸는 중... 이어폰이 다시 연결됩니다." : "이어폰으로 바꾸는 중... 이어폰이 다시 연결됩니다.");
+        reenumerate();
+        return;
+    }
     radio_off();
     // The receiver has two exclusive modes: power (sound in the earphone) and recording (sound to USB).
     Result rc = fm_set(&R.dev, m == MODE_EARPHONE ? FM_SET_POWER : FM_SET_RECORDING, 1);
@@ -252,7 +288,7 @@ static void radio_on(void) {
     }
     // The same order and pause as kjy00302's working tool (and Samsung's framework): power, 200 ms,
     // volume, channel. Band and spacing are left at the receiver's defaults (87.5-108 MHz) unless
-    // the region needs others; RDS, mono and mute are only sent when they are not the default.
+    // the region needs others: sent right after power-on (0.1.0), they left the receiver on noise.
     svcSleepThread(200000000ULL);
     fm_set(&R.dev, FM_SET_VOLUME, m == MODE_EARPHONE ? R.volume : R.spk_volume);
     if (reg()->band != 0 || reg()->spacing != 1) {
@@ -268,6 +304,7 @@ static void radio_on(void) {
     R.mode = m;
     R.last_rssi = now_ms();
     R.rssi_logged = 0;
+    R.query_logs = 0;
     if (m == MODE_SPEAKER && !spk_start()) {
         spk_status st;
         spk_get(&st);
@@ -278,8 +315,8 @@ static void radio_on(void) {
 
 static void set_output(int out) {
     R.output = out;
-    if (R.mode != MODE_OFF) radio_on();   // switch the receiver mode now
-    say(out == OUT_SPEAKER ? "스피커로 듣기" : "이어폰으로 듣기");
+    if (R.mode != MODE_OFF || out == OUT_SPEAKER || R.enum_mic_only) radio_on();   // re-enumerates if needed
+    else say("이어폰으로 듣기");
 }
 
 static void set_volume(int delta) {
@@ -290,55 +327,45 @@ static void set_volume(int delta) {
     say(R.mode == MODE_SPEAKER ? "녹음 레벨 %u / 15 (스피커 음량은 본체 볼륨으로)" : "볼륨 %u / 15", *v);
 }
 
-// ---- sweeping: the app steps the receiver and reads the signal itself. The receiver's own seek
-// reports its end through IF4 (held by the hid sysmodule), and QUERY answers all zeros meanwhile,
-// which v0.1.0 took for "seek finished, nothing found".
+// ---- seeking with the receiver's own seek. It reports its end on IF4 (held by the hid sysmodule)
+// and QUERY answers zeros meanwhile, and the signal strength reads 0 on this firmware (0.1.2 on the
+// console), so the app watches the channel instead: the receiver moves while it seeks and stops
+// on a station.
 
-static void sweep_to(u16 f) {
-    R.freq = f;
-    fm_set(&R.dev, FM_SET_CHANNEL, f);
-    R.sweep_next = now_ms() + SWEEP_DWELL_MS;
+#define SEEK_POLL_MS   100
+#define SEEK_STABLE    6        // 600 ms on the same channel after moving: found
+#define SEEK_STILL_MS  3000     // never moved: nothing found
+#define SEEK_TIMEOUT_MS 15000
+
+static void start_seek(int dir) {
+    fm_set(&R.dev, FM_SET_SEEK_START, dir > 0 ? FM_SEEK_UP : FM_SEEK_DOWN);
+    R.seeking = true;
+    R.seek_dir = dir;
+    R.seek_since = now_ms();
+    R.seek_last = R.freq;
+    R.seek_moved = false;
+    R.seek_stable = 0;
+    R.sweep_next = now_ms() + SEEK_POLL_MS;
+    rds_reset(&R.rd);
 }
-
-static int median(const u8 *v, int n) {
-    u8 tmp[256];
-    if (n <= 0) return -1;
-    memcpy(tmp, v, (size_t)n);
-    for (int i = 1; i < n; i++)
-        for (int k = i; k > 0 && tmp[k - 1] > tmp[k]; k--) {
-            u8 x = tmp[k];
-            tmp[k] = tmp[k - 1];
-            tmp[k - 1] = x;
-        }
-    return tmp[n / 2];
-}
-
-static int threshold(void) { return (R.noise >= 0 ? R.noise : 0) + R.margin; }
 
 static void seek(int dir) {
     if (R.mode == MODE_OFF) {
         say("라디오를 켜세요.");
         return;
     }
-    if (R.seeking || R.scanning) {
+    if (R.seeking) {
         stop_seek();
         return;
     }
-    R.seeking = true;
-    R.sweep_dir = dir;
-    R.sweep_from = R.freq;
-    R.sweep_n = 0;
-    R.seek_best = 0;
-    R.seek_best_rssi = 0;
-    fm_set(&R.dev, FM_SET_MUTE, 1);
-    rds_reset(&R.rd);
-    sweep_to(next_freq(R.freq, dir));
+    start_seek(dir);
 }
 
 static void scan_toggle(void) {
     if (R.scanning) {
         stop_seek();
-        say("채널 찾기를 멈췄습니다.");
+        settings_save();
+        say("채널 찾기를 멈췄습니다. %d개 찾음.", R.nch);
         return;
     }
     if (R.mode == MODE_OFF) {
@@ -346,83 +373,72 @@ static void scan_toggle(void) {
         return;
     }
     stop_seek();
-    R.scanning = true;
-    R.sweep_n = 0;
+    R.nch = 0;
     R.tab = TAB_CH;
-    fm_set(&R.dev, FM_SET_MUTE, 1);
-    rds_reset(&R.rd);
-    sweep_to(reg()->min);
+    R.scan_last = 0;
+    tune(reg()->min);
+    svcSleepThread(100000000ULL);
+    start_seek(1);
+    R.scanning = true;
 }
 
-// Stations = local maxima of the signal that stand `margin` above the band's median (the noise).
-static void scan_finish(void) {
-    int n = R.sweep_n;
-    R.noise = median(R.sweep_rssi, n);
-    int thr = threshold();
-    for (int i = 0; i < n; i += 10) {   // the whole table in the log: 10 steps per line
-        char line[96];
-        int k = 0;
-        for (int j = i; j < n && j < i + 10; j++) k += snprintf(line + k, sizeof(line) - (size_t)k, " %3u", R.sweep_rssi[j]);
-        log_file("scan %u:%s\n", reg()->min + i * reg()->step, line);
+static void seek_done(bool found, u16 f) {
+    bool scanning = R.scanning;
+    R.seeking = false;
+    log_file("seek: %s at %u after %llu ms\n", found ? "stopped" : "nothing", f,
+             (unsigned long long)(now_ms() - R.seek_since));
+    if (f >= 6400 && f <= 10800) R.freq = f;
+    if (!scanning) {
+        if (!found) say("방송을 찾지 못했습니다.");
+        R.last_rssi = now_ms();
+        return;
     }
-    R.nch = 0;
-    u8 best = 0;
-    u16 best_f = R.freq;
-    for (int i = 0; i < n && R.nch < MAX_LIST; i++) {
-        u8 v = R.sweep_rssi[i];
-        bool peak = v >= thr && (i == 0 || v >= R.sweep_rssi[i - 1]) && (i == n - 1 || v > R.sweep_rssi[i + 1]);
-        if (!peak) continue;
-        u16 f = (u16)(reg()->min + i * reg()->step);
-        if (R.nch && f - R.ch[R.nch - 1] < 3 * reg()->step) {   // 0.2 MHz apart: the same station, keep the stronger
-            int prev = (R.ch[R.nch - 1] - reg()->min) / reg()->step;
-            if (v > R.sweep_rssi[prev]) R.ch[R.nch - 1] = f;
-            continue;
+    // 채널 찾기: seek up again until the receiver wraps around or gives up.
+    if (found && f > R.scan_last) {
+        list_insert(R.ch, &R.nch, f);
+        R.scan_last = f;
+        if (f + reg()->step <= reg()->max && R.nch < MAX_LIST) {
+            start_seek(1);
+            R.scanning = true;
+            return;
         }
-        R.ch[R.nch++] = f;
-        if (v > best) best = v, best_f = f;
     }
-    log_file("scan: noise %d, threshold %d, %d station(s)\n", R.noise, thr, R.nch);
-    stop_seek();
+    R.scanning = false;
     settings_save();
-    tune(R.nch ? best_f : R.freq);
+    tune(R.nch ? R.ch[0] : reg()->min);
     say(R.nch ? "채널 %d개를 찾았습니다." : "채널을 찾지 못했습니다. 이어폰 줄을 펴 보세요.", R.nch);
 }
 
-static void sweep_step(void) {
-    u8 b[2] = {0, 0};
-    fm_get(&R.dev, FM_GET_RSSI, b);
-    R.rssi = b[0];
-    if (R.scanning) {
-        if (R.sweep_n < (int)sizeof(R.sweep_rssi)) R.sweep_rssi[R.sweep_n++] = b[0];
-        if (R.freq >= reg()->max) scan_finish();
-        else sweep_to((u16)(R.freq + reg()->step));
+static void seek_poll(void) {
+    u8 c[2] = {0, 0};
+    if (R_FAILED(fm_get(&R.dev, FM_GET_CHANNEL, c))) return;
+    u16 f = (u16)(c[0] | c[1] << 8);
+    u8 q[12];
+    u32 got = 0;
+    if (R_SUCCEEDED(fm_query(&R.dev, q, &got)) && got >= 5 && (q[0] || q[1] || q[2] || q[3])) {
+        log_file("seek: query %02x %02x %02x %02x %02x\n", q[0], q[1], q[2], q[3], q[4]);
+        u16 qf = (u16)(q[2] | q[3] << 8);
+        if (q[0] == 0 && qf >= 6400 && qf <= 10800) {   // a real seek result
+            R.rssi = q[4];
+            seek_done(q[1] != 0, qf);
+            return;
+        }
+    }
+    if (f < 6400 || f > 10800) return;
+    if (f != R.seek_last) {
+        R.seek_moved = true;
+        R.seek_stable = 0;
+        R.seek_last = f;
+        R.freq = f;   // the dial follows the receiver
+    } else if (R.seek_moved && ++R.seek_stable >= SEEK_STABLE) {
+        seek_done(true, f);
         return;
     }
-    // seek: climb to the top of the first signal above the threshold
-    R.sweep_n++;
-    if (R.sweep_n <= 64) R.sweep_rssi[R.sweep_n - 1] = b[0];
-    if (R.noise < 0 && R.sweep_n == 8) R.noise = median(R.sweep_rssi, 8);   // no scan yet: estimate
-    bool above = R.sweep_n >= 8 || R.noise >= 0 ? b[0] >= threshold() : false;
-    if (R.seek_best && b[0] < R.seek_best_rssi) {   // past the top
-        u16 f = R.seek_best;
-        stop_seek();
-        tune(f);
-        log_file("seek: found %u (rssi %u, threshold %d)\n", f, R.seek_best_rssi, threshold());
-        return;
+    u64 t = now_ms() - R.seek_since;
+    if ((!R.seek_moved && t > SEEK_STILL_MS) || t > SEEK_TIMEOUT_MS) {
+        fm_set(&R.dev, FM_SET_SEEK_STOP, 0);
+        seek_done(false, f);
     }
-    if (above && b[0] >= R.seek_best_rssi) {
-        R.seek_best = R.freq;
-        R.seek_best_rssi = b[0];
-    }
-    u16 nf = next_freq(R.freq, R.sweep_dir);
-    if (nf == R.sweep_from) {   // a whole lap
-        u16 f = R.seek_best ? R.seek_best : R.sweep_from;
-        stop_seek();
-        tune(f);
-        if (!R.seek_best) say("방송을 찾지 못했습니다.");
-        return;
-    }
-    sweep_to(nf);
 }
 
 static void read_channel(void) {
@@ -434,13 +450,18 @@ static void read_channel(void) {
 }
 
 // After IF0 opens: adopt what the receiver is already doing (the radio keeps playing in the
-// earphone after the app exits).
+// earphone after the app exits), or finish an output switch.
 static void sync_from_device(void) {
     u8 p[2], r[2], v[2], proto[2];
     fm_get(&R.dev, FM_GET_POWER, p);
     fm_get(&R.dev, FM_GET_RECORDING, r);
     fm_get(&R.dev, FM_GET_PROTOCOL, proto);
     log_file("fm: power %u, recording %u, protocol %u.%u\n", p[0], r[0], proto[0], proto[1]);
+    if (R.pending_on) {
+        R.pending_on = false;
+        radio_on();
+        return;
+    }
     if (p[0]) {
         R.mode = MODE_EARPHONE;
         R.output = OUT_EARPHONE;
@@ -454,30 +475,34 @@ static void sync_from_device(void) {
 static void poll_radio(void) {
     u64 t = now_ms();
     if (R.mode == MODE_OFF || R.dev.state != FMDEV_OPEN) return;
-    if (R.seeking || R.scanning) {
-        if (t >= R.sweep_next) sweep_step();
+    if (R.seeking) {
+        if (t >= R.sweep_next) {
+            R.sweep_next = t + SEEK_POLL_MS;
+            seek_poll();
+        }
         return;
     }
-    if (R.rds && t - R.last_query >= QUERY_MS) {
+    if (t - R.last_query >= QUERY_MS) {
         R.last_query = t;
         u8 q[12];
         u32 got = 0;
-        // RDS groups only (type 2); an all-zero answer means "nothing new".
-        if (R_SUCCEEDED(fm_query(&R.dev, q, &got)) && got >= 11 && q[0] == 2 && q[1] == 0) {
-            uint16_t blk[4];
-            rds_blocks_from_query(q + 3, blk);
-            if (blk[0] || blk[1]) rds_group(&R.rd, blk);
+        if (R_SUCCEEDED(fm_query(&R.dev, q, &got)) && got >= 5) {
+            bool any = false;
+            for (u32 i = 0; i < got && i < 12; i++) any |= q[i] != 0;
+            if (any && R.query_logs < 12) {   // what the receiver reports after a tune: where the strength may be
+                R.query_logs++;
+                log_file("query: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", q[0], q[1], q[2], q[3], q[4],
+                         q[5], q[6], q[7], q[8], q[9], q[10], q[11]);
+            }
+            if (q[0] == 1 && (q[2] || q[3])) R.rssi = q[4];   // tune result: strength
+            else if (R.rds && q[0] == 2 && got >= 11 && q[1] == 0) {
+                uint16_t blk[4];
+                rds_blocks_from_query(q + 3, blk);
+                if (blk[0] || blk[1]) rds_group(&R.rd, blk);
+            }
         }
     }
-    if (t - R.last_rssi >= (R.freq != R.rssi_logged ? 300 : RSSI_MS)) {
-        R.last_rssi = t;
-        if (R.freq != R.rssi_logged) {
-            log_signal();
-        } else {
-            u8 b[2];
-            if (R_SUCCEEDED(fm_get(&R.dev, FM_GET_RSSI, b))) R.rssi = b[0];
-        }
-    }
+    if (R.freq != R.rssi_logged && t - R.last_rssi >= 300) log_signal();
 }
 
 static void toggle_fav(void) {
@@ -592,7 +617,7 @@ static void draw(void) {
     else if (R.scanning || R.seeking) {
         char fs[16];
         fmt_freq(fs, sizeof(fs), R.freq);
-        snprintf(sub, sizeof(sub), "%s %s MHz   신호 %u", R.scanning ? "채널을 찾는 중..." : "방송을 찾는 중...", fs, R.rssi);
+        snprintf(sub, sizeof(sub), "%s %s MHz", R.scanning ? "채널을 찾는 중..." : "방송을 찾는 중...", fs);
     }
     else if (R.dev.state == FMDEV_BUSY) snprintf(sub, sizeof(sub), "다른 프로그램이 이어폰을 쓰고 있습니다 (eoaudio 등).");
     else if (on && R.rds && R.rd.rt_any) snprintf(sub, sizeof(sub), "%.64s", R.rd.rt);
@@ -623,7 +648,8 @@ static void draw(void) {
     // signal and volume, small, under the scan button
     char info[64];
     u8 vol = R.mode == MODE_SPEAKER ? R.spk_volume : R.volume;
-    if (on) snprintf(info, sizeof(info), "신호 %u   볼륨 %u%s%s", R.rssi, vol, R.mono ? "   모노" : "", R.mute ? "   음소거" : "");
+    if (on && R.rssi) snprintf(info, sizeof(info), "신호 %u   볼륨 %u%s%s", R.rssi, vol, R.mono ? "   모노" : "", R.mute ? "   음소거" : "");
+    else if (on) snprintf(info, sizeof(info), "볼륨 %u%s%s", vol, R.mono ? "   모노" : "", R.mute ? "   음소거" : "");
     else snprintf(info, sizeof(info), "볼륨 %u", vol);
     gfx_text(cx0 + cw - 40, cy0 + 118, 18, C_TEXT3, ALIGN_RIGHT, false, info);
 
@@ -778,6 +804,9 @@ int main(int argc, char **argv) {
     }
     settings_load();
     rds_reset(&R.rd);
+    // A leftover override (a crash in speaker output) keeps the earphone a microphone-only device:
+    // treat it as such, so that switching on in earphone output undoes it.
+    R.enum_mic_only = override_present();
 
     Result rc = usbHsInitialize();
     if (R_FAILED(rc)) say("usb:hs를 열 수 없습니다 (%s).", rc_str(rc));
@@ -861,6 +890,10 @@ int main(int argc, char **argv) {
     }
 
     if (R.mode == MODE_SPEAKER || quit_off) radio_off();   // speaker output cannot outlive the app
+    if (R.enum_mic_only) {   // give the console its USB output back
+        set_override(false);
+        if (R.dev.state == FMDEV_OPEN) reenumerate();
+    }
     log_file("exit: radio %s\n", R.mode == MODE_EARPHONE ? "left on in the earphone" : "off");
     settings_save();
     fm_close(&R.dev);

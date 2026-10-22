@@ -110,3 +110,8 @@ Result fm_query(fm_dev *d, u8 out[12], u32 *got) {
     memset(out, 0, 12);
     return ctrl(d, 0xA3, 0, 0, 12, out, got);
 }
+
+Result fm_reset(fm_dev *d) {
+    if (d->state != FMDEV_OPEN) return MAKERESULT(Module_Libnx, LibnxError_NotInitialized);
+    return usbHsIfResetDevice(&d->s);
+}
