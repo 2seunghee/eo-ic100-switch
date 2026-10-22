@@ -20,14 +20,16 @@ static int query(bool available) {
     return R_SUCCEEDED(rc) ? n : 0;
 }
 
-// IF0 of an EO-IC100 in g_list, or -1.
-static int find_if0(int n) {
+// Interface `num` of an EO-IC100 in g_list, or -1.
+static int find_if(int n, int num) {
     for (int i = 0; i < n; i++) {
         UsbHsInterface *it = &g_list[i];
-        if (is_eo_ic100(it->device_desc.idProduct) && it->inf.interface_desc.bInterfaceNumber == 0) return i;
+        if (is_eo_ic100(it->device_desc.idProduct) && it->inf.interface_desc.bInterfaceNumber == num) return i;
     }
     return -1;
 }
+
+static int find_if0(int n) { return find_if(n, 0); }
 
 void fm_close(fm_dev *d) {
     if (d->state == FMDEV_OPEN) {
@@ -54,7 +56,13 @@ void fm_poll_device(fm_dev *d) {
         return;
     }
     if (d->state == FMDEV_OPEN) {
-        if (same_instance(d, &g_list[k]) && d->failures < 8) return;
+        if (same_instance(d, &g_list[k]) && d->failures < 8) {
+            if (!d->passive) return;
+            usbHsIfClose(&d->s);   // let go, but stay with this plug-in (no new settling wait)
+            log_file("fm: released IF0 (id %d), passive\n", d->if_id);
+            d->state = FMDEV_SETTLING;
+            return;
+        }
         log_file("fm: earphone re-enumerated or not answering (device %u -> %u, %u failures)\n", d->device_id,
                  g_list[k].deviceID, d->failures);
         fm_close(d);
@@ -68,9 +76,13 @@ void fm_poll_device(fm_dev *d) {
         log_file("fm: earphone 04e8:%04x seen (device %u), waiting %d ms\n", d->pid, d->device_id, SETTLE_MS);
         return;
     }
-    if (now_ms() - d->seen_ms < SETTLE_MS) return;
+    if (d->passive) return;
+    bool settling = now_ms() - d->seen_ms < SETTLE_MS;
+    if (settling && !d->quick_settle) return;
+    bool if2_there = find_if(n, 2) >= 0;
     n = query(true);
     k = find_if0(n);
+    if (settling && !(if2_there && find_if(n, 2) < 0)) return;   // audio has not taken IF2 yet
     if (k < 0) {
         if (d->state != FMDEV_BUSY) log_file("fm: IF0 is held by another process\n");
         d->state = FMDEV_BUSY;

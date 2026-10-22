@@ -34,6 +34,8 @@ typedef struct {
     u64  seen_ms;        // when this device instance was first seen
     UsbHsClientIfSession s;
     u32  failures;       // control transfers that failed in a row
+    bool passive;        // eofm-ovl while hidden: keep following the earphone, but leave IF0 to others
+    bool quick_settle;   // no settling wait once the audio sysmodule holds IF2 (it has parsed this plug-in)
 } fm_dev;
 
 // Called about once a second: notices the earphone coming and going, takes IF0 when it can.
