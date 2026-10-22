@@ -24,3 +24,8 @@ switch/eoaudio/eoaudio-v*-sd/
 dumps/old_sd_backup/
 __pycache__/
 *.pyc
+
+# eofm host test and preview outputs
+switch/eofm/tests/test_rds
+switch/eofm/tests/preview_bin
+switch/eofm/tests/preview_*.ppm
