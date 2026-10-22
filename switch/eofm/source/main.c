@@ -22,7 +22,7 @@
 #define MAX_LIST        24
 #define QUERY_MS        100
 #define RSSI_MS         1000
-#define SEEK_TIMEOUT_MS 12000
+#define SWEEP_DWELL_MS  100    // per 0.1 MHz step: tune, let the receiver settle, read the signal
 #define REPEAT_DELAY_MS 400
 #define REPEAT_MS       90
 #define MSG_MS          4000
@@ -61,10 +61,18 @@ static struct {
     u8         spk_volume;    // receiver volume in speaker output (capture level), 0..15
     bool       mute, mono, rds;
     u8         rssi;
-    bool       seeking;
-    u64        seek_since;
-    bool       scanning;      // 채널 찾기: seek up through the whole band
-    u16        scan_start, scan_last;
+    bool       seeking;       // L/R-style seek: sweep to the next station
+    bool       scanning;      // 채널 찾기: sweep the whole band
+    int        sweep_dir;
+    u16        sweep_from;    // where a seek started (one lap at most)
+    u64        sweep_next;    // when to read the signal at the current step
+    u8         sweep_rssi[256];
+    int        sweep_n;
+    u16        seek_best;
+    u8         seek_best_rssi;
+    int        noise;         // median signal of the last scan (-1 = unknown)
+    int        margin;        // a station stands this far above the noise
+    u16        rssi_logged;   // last frequency whose signal went to the log
     u16        fav[MAX_LIST];
     int        nfav;
     u16        ch[MAX_LIST];
@@ -117,6 +125,8 @@ static void settings_load(void) {
     R.spk_volume = 15;
     R.rds = true;
     R.tab = TAB_CH;
+    R.noise = -1;
+    R.margin = 8;
     char buf[2048];
     FILE *f = fopen(SETTINGS_PATH, "r");
     if (!f) return;
@@ -139,6 +149,8 @@ static void settings_load(void) {
         else if (!strcmp(k, "rds")) R.rds = atoi(v) != 0;
         else if (!strcmp(k, "favorites") || !strcmp(k, "presets")) parse_list(v, R.fav, &R.nfav);
         else if (!strcmp(k, "channels")) parse_list(v, R.ch, &R.nch);
+        else if (!strcmp(k, "noise")) R.noise = atoi(v);
+        else if (!strcmp(k, "scan_margin")) R.margin = atoi(v);
     }
     if (R.volume > 15) R.volume = 15;
     if (R.spk_volume > 15) R.spk_volume = 15;
@@ -153,6 +165,7 @@ static void settings_save(void) {
                "; Frequencies in 10 kHz units (8910 = 89.1 MHz).\n");
     fprintf(f, "region=%s\noutput=%s\nfreq=%u\nvolume=%u\nspeaker_volume=%u\nmono=%d\nrds=%d\n", reg()->name,
             R.output == OUT_SPEAKER ? "speaker" : "earphone", R.freq, R.volume, R.spk_volume, R.mono, R.rds);
+    fprintf(f, "noise=%d\nscan_margin=%d\n", R.noise, R.margin);
     fprintf(f, "favorites=");
     for (int i = 0; i < R.nfav; i++) fprintf(f, "%s%u", i ? "," : "", R.fav[i]);
     fprintf(f, "\nchannels=");
@@ -179,16 +192,37 @@ static void list_insert(u16 *l, int *n, u16 f) {
 
 // ------------------------------------------------------------------ radio
 
+// Reads back where the receiver really is and how strong the signal is, into the log (each
+// frequency once): v0.1.0 heard only noise even on a known station, and the log had no way to
+// tell a tuning problem from a reception problem.
+static void log_signal(void) {
+    u8 c[2] = {0, 0}, s[2] = {0, 0};
+    Result rc = fm_get(&R.dev, FM_GET_CHANNEL, c);
+    Result rs = fm_get(&R.dev, FM_GET_RSSI, s);
+    if (R_SUCCEEDED(rs)) R.rssi = s[0];
+    log_file("signal: set %u, receiver at %u (%s), rssi %u (%s)\n", R.freq, c[0] | c[1] << 8, rc_str(rc), s[0], rc_str(rs));
+    R.rssi_logged = R.freq;
+}
+
 static void tune(u16 f) {
     if (f < reg()->min) f = reg()->max;
     if (f > reg()->max) f = reg()->min;
     R.freq = f;
     rds_reset(&R.rd);
     if (R.mode != MODE_OFF) fm_set(&R.dev, FM_SET_CHANNEL, f);
+    R.last_rssi = now_ms();   // the signal is read (and logged) a moment after the tune settles
+}
+
+// Steps of the current region, wrapping at the band edges.
+static u16 next_freq(u16 f, int dir) {
+    int n = (int)f + dir * reg()->step;
+    if (n > reg()->max) n = reg()->min;
+    if (n < reg()->min) n = reg()->max;
+    return (u16)n;
 }
 
 static void stop_seek(void) {
-    if (R.seeking) fm_set(&R.dev, FM_SET_SEEK_STOP, 0);
+    if ((R.seeking || R.scanning) && R.mode != MODE_OFF) fm_set(&R.dev, FM_SET_MUTE, R.mute);   // un-mute
     R.seeking = R.scanning = false;
 }
 
@@ -216,16 +250,24 @@ static void radio_on(void) {
         say("라디오를 켜지 못했습니다 (%s).", rc_str(rc));
         return;
     }
-    svcSleepThread(200000000ULL);   // as Samsung's framework does before the first settings
-    fm_set(&R.dev, FM_SET_BAND, reg()->band);
-    fm_set(&R.dev, FM_SET_SPACING, reg()->spacing);
+    // The same order and pause as kjy00302's working tool (and Samsung's framework): power, 200 ms,
+    // volume, channel. Band and spacing are left at the receiver's defaults (87.5-108 MHz) unless
+    // the region needs others; RDS, mono and mute are only sent when they are not the default.
+    svcSleepThread(200000000ULL);
     fm_set(&R.dev, FM_SET_VOLUME, m == MODE_EARPHONE ? R.volume : R.spk_volume);
-    fm_set(&R.dev, FM_SET_MONO, R.mono);
+    if (reg()->band != 0 || reg()->spacing != 1) {
+        fm_set(&R.dev, FM_SET_BAND, reg()->band);
+        fm_set(&R.dev, FM_SET_SPACING, reg()->spacing);
+    }
+    svcSleepThread(50000000ULL);
     fm_set(&R.dev, FM_SET_CHANNEL, R.freq);
-    fm_set(&R.dev, FM_SET_MUTE, R.mute);
-    fm_set(&R.dev, FM_SET_RDS, R.rds);
+    if (R.mono) fm_set(&R.dev, FM_SET_MONO, 1);
+    if (R.mute) fm_set(&R.dev, FM_SET_MUTE, 1);
+    if (R.rds) fm_set(&R.dev, FM_SET_RDS, 1);
     rds_reset(&R.rd);
     R.mode = m;
+    R.last_rssi = now_ms();
+    R.rssi_logged = 0;
     if (m == MODE_SPEAKER && !spk_start()) {
         spk_status st;
         spk_get(&st);
@@ -248,31 +290,55 @@ static void set_volume(int delta) {
     say(R.mode == MODE_SPEAKER ? "녹음 레벨 %u / 15 (스피커 음량은 본체 볼륨으로)" : "볼륨 %u / 15", *v);
 }
 
-static bool start_seek(int dir) {
-    if (R_FAILED(fm_set(&R.dev, FM_SET_SEEK_START, dir > 0 ? FM_SEEK_UP : FM_SEEK_DOWN))) return false;
-    R.seeking = true;
-    R.seek_since = now_ms();
-    rds_reset(&R.rd);
-    return true;
+// ---- sweeping: the app steps the receiver and reads the signal itself. The receiver's own seek
+// reports its end through IF4 (held by the hid sysmodule), and QUERY answers all zeros meanwhile,
+// which v0.1.0 took for "seek finished, nothing found".
+
+static void sweep_to(u16 f) {
+    R.freq = f;
+    fm_set(&R.dev, FM_SET_CHANNEL, f);
+    R.sweep_next = now_ms() + SWEEP_DWELL_MS;
 }
+
+static int median(const u8 *v, int n) {
+    u8 tmp[256];
+    if (n <= 0) return -1;
+    memcpy(tmp, v, (size_t)n);
+    for (int i = 1; i < n; i++)
+        for (int k = i; k > 0 && tmp[k - 1] > tmp[k]; k--) {
+            u8 x = tmp[k];
+            tmp[k] = tmp[k - 1];
+            tmp[k - 1] = x;
+        }
+    return tmp[n / 2];
+}
+
+static int threshold(void) { return (R.noise >= 0 ? R.noise : 0) + R.margin; }
 
 static void seek(int dir) {
     if (R.mode == MODE_OFF) {
         say("라디오를 켜세요.");
         return;
     }
-    if (R.seeking) {
+    if (R.seeking || R.scanning) {
         stop_seek();
         return;
     }
-    start_seek(dir);
+    R.seeking = true;
+    R.sweep_dir = dir;
+    R.sweep_from = R.freq;
+    R.sweep_n = 0;
+    R.seek_best = 0;
+    R.seek_best_rssi = 0;
+    fm_set(&R.dev, FM_SET_MUTE, 1);
+    rds_reset(&R.rd);
+    sweep_to(next_freq(R.freq, dir));
 }
 
 static void scan_toggle(void) {
     if (R.scanning) {
         stop_seek();
-        say("채널 찾기를 멈췄습니다. %d개 찾음.", R.nch);
-        settings_save();
+        say("채널 찾기를 멈췄습니다.");
         return;
     }
     if (R.mode == MODE_OFF) {
@@ -280,12 +346,83 @@ static void scan_toggle(void) {
         return;
     }
     stop_seek();
-    R.nch = 0;
+    R.scanning = true;
+    R.sweep_n = 0;
     R.tab = TAB_CH;
-    R.scan_start = R.scan_last = reg()->min;
-    tune(reg()->min);
-    svcSleepThread(50000000ULL);
-    if (start_seek(1)) R.scanning = true;
+    fm_set(&R.dev, FM_SET_MUTE, 1);
+    rds_reset(&R.rd);
+    sweep_to(reg()->min);
+}
+
+// Stations = local maxima of the signal that stand `margin` above the band's median (the noise).
+static void scan_finish(void) {
+    int n = R.sweep_n;
+    R.noise = median(R.sweep_rssi, n);
+    int thr = threshold();
+    for (int i = 0; i < n; i += 10) {   // the whole table in the log: 10 steps per line
+        char line[96];
+        int k = 0;
+        for (int j = i; j < n && j < i + 10; j++) k += snprintf(line + k, sizeof(line) - (size_t)k, " %3u", R.sweep_rssi[j]);
+        log_file("scan %u:%s\n", reg()->min + i * reg()->step, line);
+    }
+    R.nch = 0;
+    u8 best = 0;
+    u16 best_f = R.freq;
+    for (int i = 0; i < n && R.nch < MAX_LIST; i++) {
+        u8 v = R.sweep_rssi[i];
+        bool peak = v >= thr && (i == 0 || v >= R.sweep_rssi[i - 1]) && (i == n - 1 || v > R.sweep_rssi[i + 1]);
+        if (!peak) continue;
+        u16 f = (u16)(reg()->min + i * reg()->step);
+        if (R.nch && f - R.ch[R.nch - 1] < 3 * reg()->step) {   // 0.2 MHz apart: the same station, keep the stronger
+            int prev = (R.ch[R.nch - 1] - reg()->min) / reg()->step;
+            if (v > R.sweep_rssi[prev]) R.ch[R.nch - 1] = f;
+            continue;
+        }
+        R.ch[R.nch++] = f;
+        if (v > best) best = v, best_f = f;
+    }
+    log_file("scan: noise %d, threshold %d, %d station(s)\n", R.noise, thr, R.nch);
+    stop_seek();
+    settings_save();
+    tune(R.nch ? best_f : R.freq);
+    say(R.nch ? "채널 %d개를 찾았습니다." : "채널을 찾지 못했습니다. 이어폰 줄을 펴 보세요.", R.nch);
+}
+
+static void sweep_step(void) {
+    u8 b[2] = {0, 0};
+    fm_get(&R.dev, FM_GET_RSSI, b);
+    R.rssi = b[0];
+    if (R.scanning) {
+        if (R.sweep_n < (int)sizeof(R.sweep_rssi)) R.sweep_rssi[R.sweep_n++] = b[0];
+        if (R.freq >= reg()->max) scan_finish();
+        else sweep_to((u16)(R.freq + reg()->step));
+        return;
+    }
+    // seek: climb to the top of the first signal above the threshold
+    R.sweep_n++;
+    if (R.sweep_n <= 64) R.sweep_rssi[R.sweep_n - 1] = b[0];
+    if (R.noise < 0 && R.sweep_n == 8) R.noise = median(R.sweep_rssi, 8);   // no scan yet: estimate
+    bool above = R.sweep_n >= 8 || R.noise >= 0 ? b[0] >= threshold() : false;
+    if (R.seek_best && b[0] < R.seek_best_rssi) {   // past the top
+        u16 f = R.seek_best;
+        stop_seek();
+        tune(f);
+        log_file("seek: found %u (rssi %u, threshold %d)\n", f, R.seek_best_rssi, threshold());
+        return;
+    }
+    if (above && b[0] >= R.seek_best_rssi) {
+        R.seek_best = R.freq;
+        R.seek_best_rssi = b[0];
+    }
+    u16 nf = next_freq(R.freq, R.sweep_dir);
+    if (nf == R.sweep_from) {   // a whole lap
+        u16 f = R.seek_best ? R.seek_best : R.sweep_from;
+        stop_seek();
+        tune(f);
+        if (!R.seek_best) say("방송을 찾지 못했습니다.");
+        return;
+    }
+    sweep_to(nf);
 }
 
 static void read_channel(void) {
@@ -314,52 +451,32 @@ static void sync_from_device(void) {
     }
 }
 
-static void seek_done(bool found, u16 f) {
-    if (f >= 6400 && f <= 10800) R.freq = f;
-    else read_channel();
-    R.seeking = false;
-    if (!R.scanning) return;
-    // 채널 찾기: keep going up until the receiver wraps around or gives up.
-    if (found && R.freq > R.scan_last) {
-        list_insert(R.ch, &R.nch, R.freq);
-        R.scan_last = R.freq;
-        if (R.freq < reg()->max && R.nch < MAX_LIST && start_seek(1)) return;
-    }
-    R.scanning = false;
-    settings_save();
-    if (R.nch) tune(R.ch[0]);
-    say(R.nch ? "채널 %d개를 찾았습니다." : "채널을 찾지 못했습니다. 이어폰 줄을 펴 보세요.", R.nch);
-}
-
 static void poll_radio(void) {
     u64 t = now_ms();
     if (R.mode == MODE_OFF || R.dev.state != FMDEV_OPEN) return;
-    if (t - R.last_query >= QUERY_MS) {
+    if (R.seeking || R.scanning) {
+        if (t >= R.sweep_next) sweep_step();
+        return;
+    }
+    if (R.rds && t - R.last_query >= QUERY_MS) {
         R.last_query = t;
         u8 q[12];
         u32 got = 0;
-        if (R_SUCCEEDED(fm_query(&R.dev, q, &got)) && got >= 5) {
-            u16 f = (u16)(q[2] | q[3] << 8);
-            if (q[0] == 0 && R.seeking) {   // seek finished
-                R.rssi = q[4];
-                seek_done(q[1] != 0, f);
-            } else if (q[0] == 1 && f) {    // tune finished
-                R.rssi = q[4];
-            } else if (q[0] == 2 && got >= 11 && q[1] == 0 && R.rds) {
-                uint16_t blk[4];
-                rds_blocks_from_query(q + 3, blk);
-                rds_group(&R.rd, blk);
-            }
+        // RDS groups only (type 2); an all-zero answer means "nothing new".
+        if (R_SUCCEEDED(fm_query(&R.dev, q, &got)) && got >= 11 && q[0] == 2 && q[1] == 0) {
+            uint16_t blk[4];
+            rds_blocks_from_query(q + 3, blk);
+            if (blk[0] || blk[1]) rds_group(&R.rd, blk);
         }
     }
-    if (R.seeking && t - R.seek_since > SEEK_TIMEOUT_MS) {
-        fm_set(&R.dev, FM_SET_SEEK_STOP, 0);
-        seek_done(false, 0);
-    }
-    if (!R.seeking && t - R.last_rssi >= RSSI_MS) {
+    if (t - R.last_rssi >= (R.freq != R.rssi_logged ? 300 : RSSI_MS)) {
         R.last_rssi = t;
-        u8 b[2];
-        if (R_SUCCEEDED(fm_get(&R.dev, FM_GET_RSSI, b))) R.rssi = b[0];
+        if (R.freq != R.rssi_logged) {
+            log_signal();
+        } else {
+            u8 b[2];
+            if (R_SUCCEEDED(fm_get(&R.dev, FM_GET_RSSI, b))) R.rssi = b[0];
+        }
     }
 }
 
@@ -472,8 +589,11 @@ static void draw(void) {
     gfx_text(SCREEN_W / 2, 34, 50, C_WHITE, ALIGN_CENTER, true, title);
     sub[0] = 0;
     if (R.msg[0] && now_ms() - R.msg_ms < MSG_MS) snprintf(sub, sizeof(sub), "%s", R.msg);
-    else if (R.scanning) snprintf(sub, sizeof(sub), "채널을 찾는 중... %d개", R.nch);
-    else if (R.seeking) snprintf(sub, sizeof(sub), "채널을 찾는 중...");
+    else if (R.scanning || R.seeking) {
+        char fs[16];
+        fmt_freq(fs, sizeof(fs), R.freq);
+        snprintf(sub, sizeof(sub), "%s %s MHz   신호 %u", R.scanning ? "채널을 찾는 중..." : "방송을 찾는 중...", fs, R.rssi);
+    }
     else if (R.dev.state == FMDEV_BUSY) snprintf(sub, sizeof(sub), "다른 프로그램이 이어폰을 쓰고 있습니다 (eoaudio 등).");
     else if (on && R.rds && R.rd.rt_any) snprintf(sub, sizeof(sub), "%.64s", R.rd.rt);
     else if (on) snprintf(sub, sizeof(sub), R.mode == MODE_SPEAKER ? "스피커로 듣는 중" : "이어폰으로 듣는 중");
@@ -587,8 +707,9 @@ static void draw(void) {
     R.b_tab[1] = mkbox(tx + tw / 2, tyb, tw / 2, th);
 
     // ---- button help, both sides of the tab bar
-    static const char *help_l[] = {"A  전원", "X  채널 찾기", "Y  즐겨찾기", "RS  이어폰/스피커"};
-    static const char *help_r[] = {"←→  0.1MHz   L R  탐색", "↑↓  볼륨", "ZL ZR  목록 이동   -  탭", "+  나가기   B  끄고 나가기"};
+    static const char *help_l[] = {"A  전원", "X  채널 찾기", "Y  즐겨찾기", "RS 누름  이어폰/스피커"};
+    static const char *help_r[] = {"←→  0.1MHz   L R  1MHz", "ZL ZR  방송 탐색   ↑↓  볼륨", "RS ←→  목록 이동   -  탭",
+                                   "+  나가기   B  끄고 나가기"};
     for (int i = 0; i < 4; i++) {
         gfx_text(40, 626 + i * 22, 16, C_TEXT3, ALIGN_LEFT, false, help_l[i]);
         gfx_text(SCREEN_W - 40, 626 + i * 22, 16, C_TEXT3, ALIGN_RIGHT, false, help_r[i]);
@@ -708,12 +829,18 @@ int main(int argc, char **argv) {
         } else if (!dir) {
             held_dir = 0;
         }
-        if (down & HidNpadButton_R) seek(1);
-        if (down & HidNpadButton_L) seek(-1);
+        if (down & (HidNpadButton_R | HidNpadButton_L)) {
+            stop_seek();
+            int d = (down & HidNpadButton_R) ? 1 : -1;
+            int f = (int)R.freq + d * 100;   // 1 MHz, clamped to the band (no wrap)
+            tune((u16)(f < reg()->min ? reg()->min : f > reg()->max ? reg()->max : f));
+        }
+        if (down & HidNpadButton_ZR) seek(1);
+        if (down & HidNpadButton_ZL) seek(-1);
         if (down & HidNpadButton_Up) set_volume(1);
         if (down & HidNpadButton_Down) set_volume(-1);
-        if (down & HidNpadButton_ZR) step_list(1);
-        if (down & HidNpadButton_ZL) step_list(-1);
+        if (down & HidNpadButton_StickRRight) step_list(1);
+        if (down & HidNpadButton_StickRLeft) step_list(-1);
         if (down & HidNpadButton_Minus) R.tab = R.tab == TAB_FAV ? TAB_CH : TAB_FAV;
         if (down & HidNpadButton_StickL) {
             R.mono = !R.mono;

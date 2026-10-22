@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define EOFM_VERSION "0.1.0"
+#define EOFM_VERSION "0.1.2"
 #define APP_DIR      "sdmc:/switch/eofm"
 #define TARGET_VID   0x04E8   // Samsung; EO-IC100 PIDs: a054, a059, a05b
 

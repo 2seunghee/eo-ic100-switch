@@ -32,6 +32,7 @@ enum {
     HidNpadButton_StickL = 1 << 4, HidNpadButton_StickR = 1 << 5, HidNpadButton_L = 1 << 6, HidNpadButton_R = 1 << 7,
     HidNpadButton_ZL = 1 << 8, HidNpadButton_ZR = 1 << 9, HidNpadButton_Plus = 1 << 10, HidNpadButton_Minus = 1 << 11,
     HidNpadButton_Left = 1 << 12, HidNpadButton_Up = 1 << 13, HidNpadButton_Right = 1 << 14, HidNpadButton_Down = 1 << 15,
+    HidNpadButton_StickRLeft = 1 << 16, HidNpadButton_StickRRight = 1 << 17,
 };
 static inline void padConfigureInput(int n, int s) {}
 static inline void padInitializeDefault(PadState *p) {}

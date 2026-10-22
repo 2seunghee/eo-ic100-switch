@@ -7,20 +7,24 @@
 
 #include "common.h"
 
-static FILE *g_log;
+// The file is opened, appended to and closed for every line: DBI's MTP cannot copy a file the app
+// holds open, and the user copies the log while the app runs.
+static bool  g_log;
 static Mutex g_log_mutex;
 static char  g_log_path[128];
 
 static void write_stripped(const char *s) {
+    FILE *f = fopen(g_log_path, "a");
+    if (!f) return;
     for (const char *p = s; *p; p++) {
         if (*p == '\x1b') {
             while (*p && *p != 'm') p++;
             if (!*p) break;
             continue;
         }
-        fputc(*p, g_log);
+        fputc(*p, f);
     }
-    fflush(g_log);
+    fclose(f);
 }
 
 // One file per run: APP_DIR/logs/eofm_YYYYMMDD_HHMMSS.txt (or eofm_runNNNN.txt without a valid clock).
@@ -46,7 +50,9 @@ void log_init(void) {
         if (!probe) break;
         fclose(probe);
     }
-    g_log = fopen(g_log_path, "a");
+    FILE *f = fopen(g_log_path, "a");
+    g_log = f != NULL;
+    if (f) fclose(f);
 
     u32 v = hosversionGet();
     log_file("===== eofm %s  %s  HOS %u.%u.%u =====\n", EOFM_VERSION, stamp, HOSVER_MAJOR(v),
@@ -55,19 +61,9 @@ void log_init(void) {
 
 const char *log_path(void) { return g_log ? g_log_path : "(log file could not be opened)"; }
 
-void log_exit(void) {
-    if (g_log) fclose(g_log);
-    g_log = NULL;
-}
+void log_exit(void) { g_log = false; }
 
-void log_sync(void) {
-    mutexLock(&g_log_mutex);
-    if (g_log) {
-        fflush(g_log);
-        fsync(fileno(g_log));
-    }
-    mutexUnlock(&g_log_mutex);
-}
+void log_sync(void) {}   // every line is closed (and so written) as it is logged
 
 void log_both(const char *fmt, ...) {
     char buf[1024];
