@@ -13,7 +13,7 @@
 
 스위치의 audio sysmodule은 이 이어폰의 디스크립터를 읽고 재생 인터페이스까지 잡지만, 출력 장치로 등록하지 않았습니다. 원인은 출력·입력 단자 종류가 `0x0402`(Headset, 입출력 겸용)로 적혀 있는 것이었습니다(가설 H2).
 
-[switch/usbhs-logmitm](switch/usbhs-logmitm/README.md)은 Atmosphère MITM으로 audio와 `usb:hs` 사이에 끼어듭니다. audio가 받은 설정 디스크립터의 단자 종류를 `0x0302`(Headphones)와 `0x0201`(Microphone)로 고쳐 씁니다(3바이트, 디버거 방식 메모리 쓰기). 나머지 요청은 그대로 전달합니다. 그 뒤로는 닌텐도 드라이버가 볼륨 설정, 48 kHz 설정, isoc 스트리밍을 직접 합니다. 조사 과정과 실기기 로그 해석은 **[docs/PLAN.md](docs/PLAN.md)** §0에 있습니다.
+[switch/usbhs-logmitm](switch/usbhs-logmitm/README.md)은 Atmosphère MITM으로 audio와 `usb:hs` 사이에 끼어듭니다. audio가 받은 설정 디스크립터의 단자 종류를 `0x0302`(Headphones)와 `0x0201`(Microphone)로 고쳐 씁니다(3바이트, 디버거 방식 메모리 쓰기). 나머지 요청은 그대로 전달합니다. 그 뒤로는 닌텐도 드라이버가 볼륨 설정, 48 kHz 설정, isoc 스트리밍을 직접 합니다. 조사 과정과 실기기 로그 해석은 **[docs/PLAN.md](docs/PLAN.md)** §0에 있습니다. UAC 1.0 규격과의 비교, 동작 원리, FM 라디오가 쓰는 기능은 **[docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)** 에 정리했습니다.
 
 ## 진행 기록
 
@@ -40,7 +40,7 @@ switch/usbhs-logmitm/        접근 C: usb:hs MITM sysmodule (기록 + 디스크
   dist/README.txt            배포 zip에 들어가는 사용자 설명서
 switch/eofm/                 EO-IC100 내장 FM 라디오 앱(NRO, 한글 화면, 이어폰 전용). attic/: 시도했다 뺀 스피커 출력
 fixtures/                    공개 lsusb 덤프에서 복원한 EO-IC100 디스크립터
-docs/                        PLAN.md, PC_CAPTURE.md
+docs/                        PLAN.md, HOW_IT_WORKS.md, PC_CAPTURE.md
 dumps/                       실기기 디스크립터 덤프와 usbhs-logmitm 로그(C-0/C 근거)
 ```
 

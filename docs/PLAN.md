@@ -193,6 +193,8 @@ wMaxPacketSize가 384(96 kHz 기준)인 것도 정보 수준으로 표시한다.
 2. **C-0 로깅 MITM**(§5): audio sysmodule이 실제로 어떤 요청을 보내고 어디서 멈추는지 직접 본다
 3. (선택) USB 가젯 A/B 테스트: Raspberry Pi Zero 등의 Linux `g_audio`/configfs로 EO-IC100과 같은 레이아웃을 흉내 내고, H1~H7을 하나씩 고쳐 스위치에 꽂아 본다
 
+**결과:** H2가 확정됐다(§0, C 결과 1·2). UAC 1.0 규격과의 비교와 동작 원리는 [HOW_IT_WORKS.md](HOW_IT_WORKS.md)에 있다.
+
 ---
 
 ## 5. 다음 구현 단계 (Step 3 결과에 따라)
