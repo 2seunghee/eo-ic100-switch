@@ -14,7 +14,7 @@ extern "C" {
 #include "log.h"
 }
 
-#define OVL_VERSION   "0.1.0"
+#define OVL_VERSION   "0.1.1"
 #define SETTINGS_PATH "sdmc:/switch/eofm/settings.ini"
 #define MAX_LIST      24
 
@@ -80,6 +80,7 @@ void settings_load() {
     S.volume = 6;
     S.rds = true;
     S.nch = S.nfav = 0;
+    if (!fsdevGetDeviceFileSystem("sdmc")) return;
     char buf[2048];
     FILE *f = fopen(SETTINGS_PATH, "r");
     if (!f) return;
@@ -107,6 +108,7 @@ void settings_load() {
 
 // Rewrites freq= and volume= and keeps every other line as eofm wrote it.
 void settings_save() {
+    if (!fsdevGetDeviceFileSystem("sdmc")) return;
     std::string out;
     bool had_freq = false, had_vol = false;
     char buf[2048];
@@ -354,13 +356,17 @@ private:
 
 class RadioOverlay : public tsl::Overlay {
 public:
+    // libtesla opens fs but mounts no sdmc: (0.1.0 crashed in its first mkdir), and closes its sm
+    // session after its own services.
     void initServices() override {
+        m_sdmc = R_SUCCEEDED(fsdevMountSdmc());
         log_file("ovl: eofm-ovl " OVL_VERSION " start\n");
         mutexInit(&S.lock);
         settings_load();
         S.dev.passive = true;
         S.dev.quick_settle = true;
-        Result rc = usbHsInitialize();
+        Result rc = 0;
+        tsl::hlp::doWithSmSession([&rc] { rc = usbHsInitialize(); });
         log_file("ovl: usb:hs: %s\n", rc_str(rc));
         if (R_FAILED(rc)) return;
         S.stop = false;
@@ -380,6 +386,7 @@ public:
         fm_close(&S.dev);
         usbHsExit();
         log_file("ovl: exit\n");
+        if (m_sdmc) fsdevUnmountDevice("sdmc");
     }
 
     void onShow() override {
@@ -404,7 +411,7 @@ public:
     std::unique_ptr<tsl::Gui> loadInitialGui() override { return initially<RadioGui>(); }
 
 private:
-    bool m_thread = false;
+    bool m_thread = false, m_sdmc = false;
 };
 
 }  // namespace

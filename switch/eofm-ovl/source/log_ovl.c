@@ -9,8 +9,9 @@
 #define LOG_PATH "sdmc:/switch/eofm/logs/eofm-ovl.txt"
 
 void log_file(const char *fmt, ...) {
+    if (!fsdevGetDeviceFileSystem("sdmc")) return;   // not mounted: stdio on sdmc: crashes here
     static bool checked;
-    if (!checked) {
+    if (!checked) {   // needs sdmc: mounted (initServices does it first)
         checked = true;
         mkdir("sdmc:/switch/eofm", 0777);
         mkdir("sdmc:/switch/eofm/logs", 0777);
