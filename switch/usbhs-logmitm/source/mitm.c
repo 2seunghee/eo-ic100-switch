@@ -72,7 +72,8 @@ static struct {
     struct {
         s32 id;
         u16 vid, pid;
-    } known[MAX_KNOWN];      // interface ID -> device, from Query*Interfaces answers
+        u8  ifnum;
+    } known[MAX_KNOWN];      // interface ID -> device and interface number, from Query*Interfaces answers
     int     nknown;
     u32     rewrites;
     TipcService sm;
@@ -180,6 +181,18 @@ static void remember_device(const UsbHsInterface *it) {
     M.known[k].id = id;
     M.known[k].vid = dd.idVendor;
     M.known[k].pid = dd.idProduct;
+    M.known[k].ifnum = it->inf.interface_desc.bInterfaceNumber;
+}
+
+static bool lookup_interface(s32 id, u16 *vid, u16 *pid, u8 *ifnum) {
+    for (int k = 0; k < M.nknown; k++)
+        if (M.known[k].id == id) {
+            *vid = M.known[k].vid;
+            *pid = M.known[k].pid;
+            *ifnum = M.known[k].ifnum;
+            return true;
+        }
+    return false;
 }
 
 static void lookup_device(s32 id, u16 *vid, u16 *pid) {
@@ -678,6 +691,7 @@ static bool handle_request(int i) {
     }
     // The input lives in TLS, which the forwarded reply overwrites: keep a copy.
     u8 inb[64];
+    u8 *in_tls = (u8 *)in;
     if (in_len > sizeof(inb)) in_len = sizeof(inb);
     if (in) memcpy(inb, in, in_len);
     in = inb;
@@ -710,6 +724,22 @@ static bool handle_request(int i) {
         }
     } else {
         log_printf("%s: HIPC type %u", obj_label(s, o), type);
+    }
+    // deny_mic: the audio sysmodule's AcquireUsbIf for the EO-IC100's microphone (IF1) goes to the
+    // real service with an interface ID that does not exist, so audio gets usb:hs's own error for it
+    // and IF1 stays free for eofm (the radio to the speaker). Its interface list is left alone: a
+    // shortened list crashed audio (0.3.0).
+    if (request && M.cfg->deny_mic && s->program == PROGRAM_AUDIO && o->kind == OBJ_ROOT && cmd == ROOT_ACQUIRE &&
+        in_len >= 4 && in_tls) {
+        s32 id;
+        u16 vid = 0, pid = 0;
+        u8 ifnum = 0xFF;
+        memcpy(&id, in, 4);
+        if (lookup_interface(id, &vid, &pid, &ifnum) && is_eo_ic100(vid, pid) && ifnum == 1) {
+            s32 bad = 0x7FFFFFF0;
+            memcpy(in_tls, &bad, 4);
+            log_printf("     deny_mic: audio's AcquireUsbIf of the EO-IC100 microphone (IF1, id %d) sent with id %d", id, bad);
+        }
     }
     // On the SD card before the request goes on, except for streaming requests: those carry an
     // isochronous start frame ~13 ms ahead, and v0.2.0 made them miss it by waiting for the SD card.

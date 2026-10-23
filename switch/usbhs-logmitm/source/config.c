@@ -25,6 +25,7 @@ void config_defaults(lm_config *c) {
     c->log_keep = 20;
     c->rewrite = RW_TERMINAL;
     c->remote = false;   // experimental: hid must be intercepted (programs=...,hid)
+    c->deny_mic = false;   // experimental: radio to the speaker (eofm), with rewrite=none
 }
 
 static void trim(char **s, char **e) {
@@ -146,6 +147,8 @@ int config_parse(lm_config *c, const char *text, void (*warn)(const char *)) {
             else problems += report(warn, line_no, "log_keep: not 1..200", vs);
         } else if (!strcmp(ks, "remote")) {
             if (!parse_bool(vs, &c->remote)) problems += report(warn, line_no, "remote: not 0/1", vs);
+        } else if (!strcmp(ks, "deny_mic")) {
+            if (!parse_bool(vs, &c->deny_mic)) problems += report(warn, line_no, "deny_mic: not 0/1", vs);
         } else if (!strcmp(ks, "rewrite")) {
             const char *bad = NULL;
             unsigned r;

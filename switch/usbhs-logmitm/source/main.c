@@ -71,8 +71,9 @@ static void log_config(const lm_config *c) {
     char rw[80];
     rewrite_names(c->rewrite, rw, sizeof(rw));
     log_printf("config: enabled=%d services=%s programs=%sread_ctrl_data=%d sync=%d hot_detail=%d buf_dump=%d log_keep=%d "
-               "rewrite=%s remote=%d",
-               c->enabled, svcs, progs, c->read_ctrl_data, c->sync, c->hot_detail, c->buf_dump, c->log_keep, rw, c->remote);
+               "rewrite=%s remote=%d deny_mic=%d",
+               c->enabled, svcs, progs, c->read_ctrl_data, c->sync, c->hot_detail, c->buf_dump, c->log_keep, rw, c->remote,
+               c->deny_mic);
 }
 
 int main(int argc, char **argv) {

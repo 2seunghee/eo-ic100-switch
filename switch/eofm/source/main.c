@@ -1,8 +1,9 @@
 // eofm: FM radio of the Samsung EO-IC100 USB-C earphone on the Switch (homebrew NRO).
 //
 // The receiver plays the radio inside the earphone (FM power on); the console's own sound keeps
-// going to the earphone as usual (usbhs-logmitm). Earphone only: the speaker output that was tried
-// in 0.1.3-0.2.0 is kept in attic/ (it crashed the audio sysmodule both ways it was tried).
+// going to the earphone as usual (usbhs-logmitm). Speaker output (0.3.0, experimental, RS press):
+// the receiver's recording mode sends the radio to IF1 and speaker.c plays it on the console; it
+// needs usbhs-logmitm 0.3.5 with deny_mic=1 and rewrite=none (attic/README.md has the history).
 //
 // The screen follows Samsung's radio app (Korean, dark): power button, channel scan, the frequency
 // with a favourite star, a dial scale, and favourites / channels tabs. Touch and buttons both work.
@@ -15,6 +16,7 @@
 #include "gfx.h"
 #include "log.h"
 #include "rds.h"
+#include "speaker.h"
 
 #define SETTINGS_PATH   APP_DIR "/settings.ini"
 #define MAX_LIST        24
@@ -25,7 +27,7 @@
 #define REPEAT_MS       90
 #define MSG_MS          4000
 
-typedef enum { MODE_OFF, MODE_EARPHONE } radio_mode;
+typedef enum { MODE_OFF, MODE_EARPHONE, MODE_SPEAKER } radio_mode;
 enum { TAB_FAV = 0, TAB_CH = 1 };
 
 typedef struct {
@@ -78,6 +80,12 @@ static struct {
     u64        last_query, last_rssi, last_dev;
     // touch targets from the last frame
     box        b_power, b_scan, b_left, b_right, b_star, b_tab[2], b_chip[MAX_LIST];
+    box        b_dial, b_num;            // drag areas: the dial scale, the big frequency
+    int        dial_lo, dial_hi, dial_x0, dial_x1;
+    // a frequency drag in progress: 1 = on the dial (absolute), 2 = on the number (relative)
+    int        drag, drag_x0;
+    u16        drag_f0;
+    u64        drag_tuned;
     int        nchips;
 } R;
 
@@ -208,21 +216,25 @@ static void stop_seek(void) {
 
 static void radio_off(void) {
     stop_seek();
-    if (R.mode == MODE_EARPHONE) fm_set(&R.dev, FM_SET_POWER, 0);
+    if (R.mode == MODE_SPEAKER) {
+        spk_stop();
+        fm_set(&R.dev, FM_SET_RECORDING, 0);
+    } else if (R.mode == MODE_EARPHONE) {
+        fm_set(&R.dev, FM_SET_POWER, 0);
+    }
     R.mode = MODE_OFF;
 }
 
-// The receiver plays the radio inside the earphone (its "power" mode). A speaker output, with the
-// receiver's recording mode sending the radio to the console as the USB microphone, was tried in
-// 0.1.3-0.2.0 and taken out: both ways of getting that microphone crashed the audio sysmodule
-// (docs/PLAN.md, attic/speaker.c).
-static void radio_on(void) {
+// The receiver plays the radio inside the earphone (its "power" mode), or sends it to the console
+// as the USB microphone (its "recording" mode) for speaker.c. The receiver is set up the same way
+// in both.
+static void radio_start(radio_mode m) {
     if (R.dev.state != FMDEV_OPEN) {
         say(R.dev.state == FMDEV_NONE ? "이어폰을 연결하세요." : "이어폰을 준비하는 중입니다. 잠시 후 다시 누르세요.");
         return;
     }
     radio_off();
-    Result rc = fm_set(&R.dev, FM_SET_POWER, 1);
+    Result rc = fm_set(&R.dev, m == MODE_SPEAKER ? FM_SET_RECORDING : FM_SET_POWER, 1);
     if (R_FAILED(rc)) {
         say("라디오를 켜지 못했습니다 (%s).", rc_str(rc));
         return;
@@ -242,16 +254,40 @@ static void radio_on(void) {
     if (R.mute) fm_set(&R.dev, FM_SET_MUTE, 1);
     if (R.rds) fm_set(&R.dev, FM_SET_RDS, 1);
     rds_reset(&R.rd);
-    R.mode = MODE_EARPHONE;
+    R.mode = m;
     R.last_rssi = now_ms();
     R.rssi_logged = 0;
     R.query_logs = 0;
+    if (m != MODE_SPEAKER) return;
+    // Speaker: the receiver records at full level, the app's volume scales the console output.
+    fm_set(&R.dev, FM_SET_VOLUME, 15);
+    spk_set_gain(R.volume);
+    if (!spk_start()) {
+        spk_status st;
+        spk_get(&st);
+        say("스피커로 듣기 실패: %s", st.error);
+        radio_start(MODE_EARPHONE);
+        return;
+    }
+    say("스피커로 듣는 중 (본체 볼륨과 ↑↓로 조절)");
+}
+
+static void radio_on(void) { radio_start(MODE_EARPHONE); }
+
+// RS press: the radio between the earphone and the console speaker.
+static void toggle_speaker(void) {
+    if (R.mode == MODE_OFF) {
+        say("라디오를 켜세요.");
+        return;
+    }
+    radio_start(R.mode == MODE_SPEAKER ? MODE_EARPHONE : MODE_SPEAKER);
 }
 
 static void set_volume(int delta) {
     int nv = R.volume + delta;
     R.volume = (u8)(nv < 0 ? 0 : nv > 15 ? 15 : nv);
-    if (R.mode != MODE_OFF) fm_set(&R.dev, FM_SET_VOLUME, R.volume);
+    if (R.mode == MODE_SPEAKER) spk_set_gain(R.volume);
+    else if (R.mode != MODE_OFF) fm_set(&R.dev, FM_SET_VOLUME, R.volume);
     say("볼륨 %u / 15", R.volume);
 }
 
@@ -614,6 +650,12 @@ static void draw(void) {
     }
     else if (R.dev.state == FMDEV_BUSY) snprintf(sub, sizeof(sub), "다른 프로그램이 이어폰을 쓰고 있습니다 (eoaudio 등).");
     else if (on && R.rds && R.rd.rt_any) snprintf(sub, sizeof(sub), "%.64s", R.rd.rt);
+    else if (R.mode == MODE_SPEAKER) {
+        spk_status st;
+        spk_get(&st);
+        if (st.error[0]) snprintf(sub, sizeof(sub), "스피커: %s", st.error);
+        else snprintf(sub, sizeof(sub), "스피커로 듣는 중 · 입력 %d dBFS · %.0f초", st.peak_db, st.frames / 48000.0);
+    }
     else if (on) snprintf(sub, sizeof(sub), "이어폰으로 듣는 중");
     else if (R.dev.state == FMDEV_OPEN) snprintf(sub, sizeof(sub), "이어폰 줄이 안테나 역할을 합니다.");
     gfx_text(SCREEN_W / 2, 100, 22, C_TEXT2, ALIGN_CENTER, false, sub);
@@ -654,6 +696,7 @@ static void draw(void) {
     draw_chevron(cx0 + cw - 70, fy + 70, 1, on ? C_TEXT2 : C_TEXT3);
     R.b_left = mkbox(cx0 + 20, fy + 10, 110, 120);
     R.b_right = mkbox(cx0 + cw - 130, fy + 10, 110, 120);
+    R.b_num = mkbox(cx0 + 130, fy, cw - 260, 150);
 
     // dial scale: labels every 3 MHz, ticks every 0.5 MHz, a marker at the frequency
     int lo = reg()->min < 8750 ? 7600 : 8600, hi = reg()->min < 8750 ? 9600 : 11000;
@@ -670,6 +713,11 @@ static void draw(void) {
         bool major = (v - lo) % step_lbl == 0;
         gfx_line(x, ty + (major ? 0 : 6), x, ty + 28, major ? 2.0f : 1.4f, major ? RGB(96, 96, 100) : C_LINE);
     }
+    R.b_dial = mkbox(sx0 - 20, ly - 10, sx1 - sx0 + 40, ty + 50 - (ly - 10));
+    R.dial_lo = lo;
+    R.dial_hi = hi;
+    R.dial_x0 = sx0;
+    R.dial_x1 = sx1;
     float mx = sx0 + (sx1 - sx0) * (float)(R.freq - lo) / (float)(hi - lo);
     gfx_line(mx, ty - 8, mx, ty + 34, 3.0f, on ? C_ACCENT : C_TEXT3);
 
@@ -721,7 +769,7 @@ static void draw(void) {
     R.b_tab[1] = mkbox(tx + tw / 2, tyb, tw / 2, th);
 
     // ---- button help, both sides of the tab bar
-    static const char *help_l[] = {"A  전원", "X  채널 찾기", "Y  즐겨찾기", "LS 누름  모노/스테레오"};
+    static const char *help_l[] = {"A  전원", "X  채널 찾기", "Y  즐겨찾기", "LS 누름  모노   RS 누름  스피커/이어폰"};
     static const char *help_r[] = {"←→  0.1MHz   L R  1MHz", "ZL ZR  방송 탐색   ↑↓  볼륨", "RS ←→  목록 이동   -  탭",
                                    "+  나가기   B  끄고 나가기"};
     for (int i = 0; i < 4; i++) {
@@ -734,7 +782,8 @@ static void draw(void) {
 
 static bool hit(box b, int x, int y) { return x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h; }
 
-static void on_touch(int x, int y) {
+// Returns false when the touch hit no button (it may start a drag).
+static bool on_touch(int x, int y) {
     if (hit(R.b_power, x, y)) {
         if (R.mode != MODE_OFF) radio_off();
         else radio_on();
@@ -750,8 +799,45 @@ static void on_touch(int x, int y) {
             if (hit(R.b_chip[i], x, y)) {
                 stop_seek();
                 tune(l[i]);
+                return true;
             }
+        return false;
     }
+    return true;
+}
+
+// ---- frequency drag: on the dial the marker follows the finger; on the big number every
+// DRAG_PX_PER_STEP pixels sideways is one step (right = up). The receiver is retuned at most every
+// DRAG_TUNE_MS while the finger moves, and once more where it lets go.
+#define DRAG_PX_PER_STEP 12
+#define DRAG_TUNE_MS     80
+
+static u16 drag_target(int x) {
+    int f;
+    if (R.drag == 1) f = R.dial_lo + (x - R.dial_x0) * (R.dial_hi - R.dial_lo) / (R.dial_x1 - R.dial_x0);
+    else f = R.drag_f0 + (x - R.drag_x0) / DRAG_PX_PER_STEP * reg()->step;
+    int step = reg()->step;
+    f = reg()->min + (f - reg()->min + step / 2) / step * step;
+    return (u16)(f < reg()->min ? reg()->min : f > reg()->max ? reg()->max : f);
+}
+
+static void drag_begin(int x, int y) {
+    R.drag = hit(R.b_dial, x, y) ? 1 : hit(R.b_num, x, y) ? 2 : 0;
+    R.drag_x0 = x;
+    R.drag_f0 = R.freq;
+    R.drag_tuned = 0;
+    if (R.drag) stop_seek();
+}
+
+static void drag_move(int x, bool last) {
+    if (!R.drag) return;
+    u16 f = drag_target(x);
+    u64 t = now_ms();
+    if (f != R.freq && (last || t - R.drag_tuned >= DRAG_TUNE_MS)) {
+        tune(f);
+        R.drag_tuned = t;
+    }
+    if (last) R.drag = 0;
 }
 
 // ------------------------------------------------------------------ main
@@ -787,6 +873,7 @@ int main(int argc, char **argv) {
     log_file("usbHsInitialize: %s, region %s, freq %u\n", rc_str(rc), reg()->name, R.freq);
 
     bool quit_off = false, touching = false;
+    int touch_x = 0;
     int held_dir = 0;
     u64 held_since = 0, last_repeat = 0;
     while (appletMainLoop()) {
@@ -801,6 +888,7 @@ int main(int argc, char **argv) {
             if (R.dev.state == FMDEV_OPEN && before != FMDEV_OPEN) {
                 sync_from_device();
             } else if (R.dev.state != FMDEV_OPEN && before == FMDEV_OPEN) {
+                if (R.mode == MODE_SPEAKER) spk_stop();
                 R.mode = MODE_OFF;
                 R.seeking = R.scanning = false;
                 say("이어폰 연결이 끊어졌습니다.");
@@ -843,6 +931,7 @@ int main(int argc, char **argv) {
         if (down & HidNpadButton_StickRRight) step_list(1);
         if (down & HidNpadButton_StickRLeft) step_list(-1);
         if (down & HidNpadButton_Minus) R.tab = R.tab == TAB_FAV ? TAB_CH : TAB_FAV;
+        if (down & HidNpadButton_StickR) toggle_speaker();
         if (down & HidNpadButton_StickL) {
             R.mono = !R.mono;
             if (R.mode != MODE_OFF) fm_set(&R.dev, FM_SET_MONO, R.mono);
@@ -851,9 +940,13 @@ int main(int argc, char **argv) {
 
         HidTouchScreenState ts = {0};
         if (hidGetTouchScreenStates(&ts, 1) && ts.count > 0) {
-            if (!touching) on_touch((int)ts.touches[0].x, (int)ts.touches[0].y);
+            int x = (int)ts.touches[0].x, y = (int)ts.touches[0].y;
+            if (!touching && !on_touch(x, y)) drag_begin(x, y);
+            drag_move(x, false);
+            touch_x = x;
             touching = true;
         } else {
+            if (touching) drag_move(touch_x, true);
             touching = false;
         }
 
@@ -861,7 +954,7 @@ int main(int argc, char **argv) {
         draw();
     }
 
-    if (quit_off) radio_off();   // + leaves the radio playing in the earphone
+    if (quit_off || R.mode == MODE_SPEAKER) radio_off();   // + leaves the radio playing in the earphone, not on the speaker
     log_file("exit: radio %s\n", R.mode == MODE_EARPHONE ? "left on in the earphone" : "off");
     settings_save();
     fm_close(&R.dev);

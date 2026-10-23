@@ -1,11 +1,9 @@
 #pragma once
 #include "common.h"
 
-// Speaker mode. In the earphone's recording mode the radio arrives at the console as the USB
-// microphone (IF1). The audio sysmodule owns that interface, so the sound is taken from the system
-// audio input (audin) and played again with audout, after the system output has been moved to the
-// console speaker (audctl). Everything that could go wrong is logged: whether audin lists the USB
-// microphone, and whether audctl may move the output while a USB output device is attached.
+// Speaker mode: in the receiver's recording mode the radio arrives at the console as the USB
+// microphone (IF1). speaker.c reads it there itself and plays it with audout; usbhs-logmitm's
+// deny_mic keeps the audio sysmodule off that interface (see speaker.c).
 
 typedef struct {
     bool     running;
@@ -22,3 +20,4 @@ typedef struct {
 bool spk_start(void);
 void spk_stop(void);
 void spk_get(spk_status *out);
+void spk_set_gain(int vol15);   // the app's volume 0..15 scales the speaker output

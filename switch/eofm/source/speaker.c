@@ -5,18 +5,22 @@
 #include "log.h"
 #include "usbio.h"
 
-// Speaker output, second design. The first one went through the system audio input (audin) and
-// ended in a fatal error of the audio sysmodule (eofm 0.1.6). Now usbhs-logmitm hides the whole
-// earphone from the audio sysmodule (rewrite_override.txt = "hide"), so:
-//  - the console has no USB output and plays on its speaker;
+// Speaker output, third design (0.3.0). The first went through the system audio input (audin) and
+// crashed the audio sysmodule (eofm 0.1.6); the second had usbhs-logmitm hide the earphone from it,
+// which crashed it too (0.2.0). Now usbhs-logmitm (0.3.5, deny_mic=1, rewrite=none) only lets the
+// audio sysmodule's AcquireUsbIf of the microphone fail, so:
+//  - the console has no USB output (no terminal rewrite) and plays on its speaker;
 //  - the earphone's microphone interface (IF1) is free: this file takes it, sets 48 kHz and reads
 //    the isochronous IN endpoint 0x83 itself, the same way the audio sysmodule does it (batches of
 //    5 urbs x 192 bytes = 1 ms each, scheduled by absolute USB frame numbers: approach A, read side);
-//  - the PCM goes to audout through a small ring.
+//  - the PCM goes to audout through a small ring, scaled by the app's volume (spk_set_gain).
 
 #define PKT        192      // 1 ms of 48 kHz 16-bit stereo
-#define UPB        5        // urbs per batch
-#define NB         4        // batches in flight (20 ms)
+#define UPB        8        // urbs per batch
+#define NB         8        // batches in flight (64 ms). 0.3.1 had 3 x 5 and got only ~83% of the
+                            // stream (4.1 s per 5 s): the batches ran dry between completions.
+#define MAX_URBS   16       // usbHsIfOpenUsbEp maxUrbCount, 1..16 (0.3.0 asked for 20: 2140-0101). It
+                            // counts transfers (batches): the audio sysmodule streams 5-urb batches with 3.
 #define SLOT       0x1000
 #define FRAME_LEAD 16
 #define RING       (48000 / 2)   // frames (0.5 s)
@@ -60,7 +64,12 @@ static struct {
     volatile bool stop;
     int16_t       peak;
     u64           peak_since;
+    volatile int  gain;   // output scale, 0..256 (256 = as captured)
+    // diagnostics, logged every 5 s
+    u32           restarts, submit_fail, short_urbs, bad_urbs, underruns;
 } S;
+
+void spk_set_gain(int vol15) { S.gain = vol15 <= 0 ? 0 : vol15 >= 15 ? 256 : vol15 * vol15 * 256 / 225; }
 
 static void set_error(const char *msg, Result rc) {
     mutexLock(&S.lock);
@@ -115,9 +124,10 @@ static void submit(int bi) {
             return;
         }
         if (rc != RC_FRAME_WINDOW || attempt) {
-            log_file("speaker: BatchBufferAsync: %s\n", rc_str(rc));
+            if (S.submit_fail++ < 5) log_file("speaker: BatchBufferAsync: %s\n", rc_str(rc));
             break;
         }
+        S.restarts++;
         u32 cur = 0;   // the start frame is gone: restart from the bus
         usbHsIfGetCurrentFrame(&S.ifs, &cur);
         S.frame_next = cur + FRAME_LEAD;
@@ -138,6 +148,33 @@ static void ring_put(const u8 *data, u32 bytes) {
     }
 }
 
+// One urb report. When the batch has all its reports, its data goes to the ring and it is sent again.
+static void on_report(const UsbHsXferReport *r, u64 *last_ok) {
+    int bi = (int)(r->id & 0xFF);
+    if (bi >= NB || !S.b[bi].busy || S.b[bi].id != r->id) return;
+    batch *b = &S.b[bi];
+    u32 got = R_SUCCEEDED(r->res) ? r->transferredSize : 0;
+    if (R_FAILED(r->res)) S.bad_urbs++;
+    else if (got < PKT) S.short_urbs++;
+    if (b->reports < UPB) b->got[b->reports] = got;
+    if (++b->reports < UPB) return;
+    // the batch is complete: urb i's data is at i * PKT
+    u8 *buf = S.region + (size_t)bi * SLOT;
+    armDCacheFlush(buf, SLOT);
+    u32 total = 0;
+    mutexLock(&S.lock);
+    for (int i = 0; i < UPB; i++) {
+        u32 n = b->got[i] > PKT ? PKT : b->got[i];
+        ring_put(buf + i * PKT, n);
+        total += n;
+    }
+    S.st.frames += total / 4;
+    mutexUnlock(&S.lock);
+    if (total) *last_ok = now_ms();
+    b->busy = false;
+    if (!S.stop) submit(bi);
+}
+
 static void cap_loop(void *arg) {
     UsbHsXferReport reps[32];
     u64 last_ok = now_ms();
@@ -147,35 +184,19 @@ static void cap_loop(void *arg) {
     for (int bi = 0; bi < NB; bi++) submit(bi);
     while (!S.stop) {
         if (R_FAILED(eventWait(usbHsEpGetXferEvent(&S.ep), 20000000ULL))) {
-            if (now_ms() - last_ok > 2000 && !S.st.error[0]) set_error("no audio from the earphone for 2 s", 0);
+            if (now_ms() - last_ok > 2000 && !S.st.error[0]) set_error("2초 동안 이어폰 소리가 오지 않음", 0);
             for (int bi = 0; bi < NB; bi++)
                 if (!S.b[bi].busy) submit(bi);
             continue;
         }
         eventClear(usbHsEpGetXferEvent(&S.ep));
-        u32 count = 0;
-        if (R_FAILED(usbHsEpGetXferReport(&S.ep, reps, 32, &count))) break;
-        for (u32 k = 0; k < count && k < 32; k++) {
-            int bi = (int)(reps[k].id & 0xFF);
-            if (bi >= NB || !S.b[bi].busy || S.b[bi].id != reps[k].id) continue;
-            batch *b = &S.b[bi];
-            if (b->reports < UPB) b->got[b->reports] = R_SUCCEEDED(reps[k].res) ? reps[k].transferredSize : 0;
-            if (++b->reports < UPB) continue;
-            // the batch is complete: urb i's data is at i * PKT
-            u8 *buf = S.region + (size_t)bi * SLOT;
-            armDCacheFlush(buf, SLOT);
-            u32 total = 0;
-            mutexLock(&S.lock);
-            for (int i = 0; i < UPB; i++) {
-                u32 n = b->got[i] > PKT ? PKT : b->got[i];
-                ring_put(buf + i * PKT, n);
-                total += n;
-            }
-            S.st.frames += total / 4;
-            mutexUnlock(&S.lock);
-            if (total) last_ok = now_ms();
-            b->busy = false;
-            if (!S.stop) submit(bi);
+        // Up to NB * UPB urb reports can be waiting: read until a short read, since the event is
+        // already cleared for the ones a single read leaves behind.
+        u32 count = 32;
+        while (count == 32 && !S.stop) {
+            count = 0;
+            if (R_FAILED(usbHsEpGetXferReport(&S.ep, reps, 32, &count))) return;
+            for (u32 k = 0; k < count && k < 32; k++) on_report(&reps[k], &last_ok);
         }
     }
 }
@@ -183,20 +204,20 @@ static void cap_loop(void *arg) {
 static bool usb_open(void) {
     UsbHsInterface it;
     if (!find_if1(&it)) {
-        set_error("the earphone's microphone interface is not free (is usbhs-logmitm 0.3.0 installed?)", 0);
+        set_error("마이크 통로가 비어 있지 않음 (드라이버 deny_mic=1 필요)", 0);
         return false;
     }
     Result rc = usbHsAcquireUsbIf(&S.ifs, &it);
     log_file("speaker: acquire IF1: %s\n", rc_str(rc));
     if (R_FAILED(rc)) {
-        set_error("taking the microphone interface failed", rc);
+        set_error("마이크 통로를 잡지 못함", rc);
         return false;
     }
     S.if_ok = true;
     rc = usbHsIfSetInterface(&S.ifs, NULL, 1);   // alt 1: 48 kHz 16-bit stereo, EP 0x83
     log_file("speaker: SetInterface(alt 1): %s\n", rc_str(rc));
     if (R_FAILED(rc)) {
-        set_error("selecting the microphone's 48 kHz setting failed", rc);
+        set_error("마이크 48 kHz 설정 실패", rc);
         return false;
     }
     struct usb_endpoint_descriptor *epd = NULL;
@@ -205,23 +226,23 @@ static bool usb_open(void) {
         if (x->bLength && (x->bmAttributes & USB_TRANSFER_TYPE_MASK) == USB_TRANSFER_TYPE_ISOCHRONOUS) epd = x;
     }
     if (!epd) {
-        set_error("no isochronous IN endpoint on the microphone interface", 0);
+        set_error("마이크 엔드포인트 없음", 0);
         return false;
     }
     S.epd = *epd;
     u8 rate[3] = {0x80, 0xBB, 0x00};   // SET_CUR sampling frequency 48000 on the endpoint
     rc = usbio_ctrl(&S.ifs, 0x22, 0x01, 0x0100, S.epd.bEndpointAddress, 3, rate, NULL);
     log_file("speaker: SET_CUR 48000 on EP %02x: %s\n", S.epd.bEndpointAddress, rc_str(rc));
-    rc = usbHsIfOpenUsbEp(&S.ifs, &S.ep, NB * UPB, S.epd.wMaxPacketSize, &S.epd);
+    rc = usbHsIfOpenUsbEp(&S.ifs, &S.ep, MAX_URBS, S.epd.wMaxPacketSize, &S.epd);
     log_file("speaker: open EP %02x (mps %u): %s\n", S.epd.bEndpointAddress, S.epd.wMaxPacketSize, rc_str(rc));
     if (R_FAILED(rc)) {
-        set_error("opening the microphone endpoint failed", rc);
+        set_error("마이크 엔드포인트 열기 실패", rc);
         return false;
     }
     S.ep_ok = true;
     S.region = memalign(0x1000, (size_t)SLOT * NB);
     if (!S.region) {
-        set_error("out of memory", 0);
+        set_error("메모리 부족", 0);
         return false;
     }
     memset(S.region, 0, (size_t)SLOT * NB);
@@ -245,6 +266,7 @@ static void usb_close(void) {
 
 static void play_loop(void *arg) {
     u64 last_report = now_ms();
+    bool primed = false;
     while (!S.stop) {
         AudioOutBuffer *rel = NULL;
         u32 n = 0;
@@ -262,13 +284,21 @@ static void play_loop(void *arg) {
         u32 fill = S.wpos - S.rpos;
         if (fill > TARGET_FILL * 3) S.rpos = S.wpos - TARGET_FILL;   // too far behind the radio: catch up
         fill = S.wpos - S.rpos;
-        bool take = free_k >= 0 && queued < 3 && fill >= OUT_FRAMES;
+        // Start (and restart after running dry) only with TARGET_FILL in the ring, so that the
+        // output does not stop and go every 20 ms on a thin ring.
+        if (primed && !queued && fill < OUT_FRAMES) {
+            primed = false;
+            S.underruns++;
+        }
+        if (!primed && fill >= TARGET_FILL) primed = true;
+        bool take = primed && free_k >= 0 && queued < 3 && fill >= OUT_FRAMES;
         if (take) {
             int16_t *o = S.out_mem[free_k];
+            int g = S.gain;
             for (u32 i = 0; i < OUT_FRAMES; i++) {
                 u32 k = (S.rpos + i) % RING;
-                o[2 * i] = S.ring[2 * k];
-                o[2 * i + 1] = S.ring[2 * k + 1];
+                o[2 * i] = (int16_t)(S.ring[2 * k] * g / 256);
+                o[2 * i + 1] = (int16_t)(S.ring[2 * k + 1] * g / 256);
             }
             S.rpos += OUT_FRAMES;
         }
@@ -282,7 +312,9 @@ static void play_loop(void *arg) {
         }
         if (now_ms() - last_report >= 5000) {
             last_report = now_ms();
-            log_file("speaker: %.1f s captured, peak %d dBFS, ring %u frames\n", S.st.frames / 48000.0, S.st.peak_db, fill);
+            log_file("speaker: %.1f s captured, peak %d dBFS, ring %u frames; restarts %u, failed submits %u, short urbs %u, "
+                     "failed urbs %u, output underruns %u\n", S.st.frames / 48000.0, S.st.peak_db, fill, S.restarts,
+                     S.submit_fail, S.short_urbs, S.bad_urbs, S.underruns);
         }
     }
 }
@@ -308,6 +340,7 @@ bool spk_start(void) {
     S.wpos = S.rpos = 0;
     S.seq = 0;
     memset(S.b, 0, sizeof(S.b));
+    S.restarts = S.submit_fail = S.short_urbs = S.bad_urbs = S.underruns = 0;
     output_target();
 
     if (!usb_open()) {
@@ -317,14 +350,14 @@ bool spk_start(void) {
     Result rc = audoutInitialize();
     S.audout_ok = R_SUCCEEDED(rc);
     if (!S.audout_ok) {
-        set_error("audout (system audio output) not available", rc);
+        set_error("audout 사용 불가", rc);
         spk_stop();
         return false;
     }
     for (int k = 0; k < N_OUT; k++) {
         S.out_mem[k] = memalign(0x1000, OUT_SIZE);
         if (!S.out_mem[k]) {
-            set_error("out of memory", 0);
+            set_error("메모리 부족", 0);
             spk_stop();
             return false;
         }
@@ -344,7 +377,7 @@ bool spk_start(void) {
         S.play_ok = R_SUCCEEDED(rc);
     }
     if (!S.cap_ok || !S.play_ok) {
-        set_error("audio threads", rc);
+        set_error("오디오 스레드 실패", rc);
         spk_stop();
         return false;
     }
