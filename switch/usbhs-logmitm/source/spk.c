@@ -487,11 +487,49 @@ static void write_mode_status(bool speaker) {
     fclose(f);
 }
 
+static bool earphone_present(void) {
+    static UsbHsInterface list[8];
+    UsbHsInterfaceFilter f;
+    memset(&f, 0, sizeof(f));
+    f.Flags = UsbHsInterfaceFilterFlags_idVendor;
+    f.idVendor = 0x04E8;
+    s32 n = 0;
+    if (R_FAILED(usbHsQueryAllInterfaces(&f, list, sizeof(list), &n))) return true;
+    for (s32 i = 0; i < n; i++) {
+        u16 pid = list[i].device_desc.idProduct;
+        if (pid == 0xA054 || pid == 0xA059 || pid == 0xA05B) return true;
+    }
+    return false;
+}
+
+// In speaker mode the console mutes its speaker when the earphone is pulled out, as for any
+// headset, although it played there all along (the user had to press a volume button, 0.3.8).
+// Undo that mute a moment after the earphone goes. Earphone mode keeps Nintendo's behaviour.
+static void unmute_after_unplug(bool audctl_ok, bool *was_present) {
+    bool present = earphone_present();
+    bool gone = *was_present && !present;
+    *was_present = present;
+    if (!gone || !g_speaker_mode || !audctl_ok) return;
+    for (int i = 0; i < 10; i++) {   // the mute comes a little after the unplug
+        svcSleepThread(100000000ULL);
+        bool mute = false;
+        if (R_SUCCEEDED(audctlIsTargetMute(&mute, AudioTarget_Speaker)) && mute) {
+            Result rc = audctlSetTargetMute(AudioTarget_Speaker, false);
+            log_printf("mode: earphone unplugged in speaker mode, speaker unmuted: %s", rc_str(rc));
+            return;
+        }
+    }
+    log_printf("mode: earphone unplugged in speaker mode, speaker not muted");
+}
+
 static void ctl_loop(void *arg) {
     bool boot_speaker = (bool)(uintptr_t)arg;
     Result rc = usbHsInitialize();
     P.usb_init = R_SUCCEEDED(rc);
-    log_printf("speaker: service ready (usb:hs %s); requests in %s", rc_str(rc), REQ_PATH);
+    bool audctl_ok = R_SUCCEEDED(audctlInitialize());
+    bool was_present = false;
+    log_printf("speaker: service ready (usb:hs %s, audctl %s); requests in %s", rc_str(rc), audctl_ok ? "OK" : "no",
+               REQ_PATH);
     remove(REQ_PATH);   // a request from before this boot is stale: the receiver is off now
     remove(MODE_PATH);   // every boot starts in the configured mode (earphone unless deny_mic=1)
     write_status("off\n");
@@ -510,6 +548,7 @@ static void ctl_loop(void *arg) {
             }
             write_mode_status(m);
         }
+        if (P.usb_init) unmute_after_unplug(audctl_ok, &was_present);
         int gain = 15;
         bool want = P.usb_init && read_request(&gain);
         if (want && gain != last_gain) {
