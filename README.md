@@ -4,7 +4,7 @@
 
 ## 바로 쓰기
 
-**[Releases](../../releases)** 에서 `eo-ic100-usbaudio-v*.zip`을 받아 SD 카드 루트에 풀고 재부팅하면 됩니다. 설치·제거·복구 방법은 zip 안의 `README.txt`([switch/usbhs-logmitm/dist/README.txt](switch/usbhs-logmitm/dist/README.txt))에 있습니다.
+**[Releases](../../releases)** 에서 최신 `eo-ic100-switch-*.zip`(드라이버 + FM 라디오 앱 + 라디오 오버레이)을 받아 SD 카드 루트에 풀고 재부팅하면 됩니다. 설치·제거·복구 방법은 zip 안의 `README.txt`([switch/usbhs-logmitm/dist/README.txt](switch/usbhs-logmitm/dist/README.txt))에 있습니다.
 
 - 이어폰을 꽂으면 스위치가 "USB 스피커"로 인식하고, 게임·홈 화면·홈브루 소리가 모두 이어폰으로 나옵니다. 콘솔 볼륨도 그대로 동작합니다.
 - 확인된 환경: HOS 22.1.0 + Atmosphère, EO-IC100 `04e8:a05b`. `a054`/`a059` 변형, 리모컨 버튼, 마이크, 슬립 후 복귀, TV 모드는 아직 확인하지 않았습니다.
