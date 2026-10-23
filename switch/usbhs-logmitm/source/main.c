@@ -14,9 +14,10 @@
 #include "log.h"
 #include "mitm.h"
 #include "remote.h"
+#include "spk.h"
 #include "rewrite.h"
 
-#define INNER_HEAP_SIZE 0x60000   // thread stacks (2 x 16 KiB), stdio, the config text
+#define INNER_HEAP_SIZE 0x60000   // thread stacks (2 x 16 KiB), stdio, the config text; ~120 KiB more while the speaker runs (spk.c)
 #define CONFIG_PATH     APP_DIR "/config.ini"
 #define STATUS_MS       60000ULL
 
@@ -108,6 +109,7 @@ int main(int argc, char **argv) {
     log_printf("%d of %d service(s) intercepted. Log: %s", installed, cfg.n_services, log_path());
     log_sync();
     if (cfg.enabled && cfg.remote) remote_start();
+    if (cfg.enabled && cfg.deny_mic) spk_service_start();   // the radio on the speaker, asked for by eofm
 
     // The mitm thread does the work. This process never exits on its own: an intercepted client's
     // sessions end with it, and the audio sysmodule would not survive that.

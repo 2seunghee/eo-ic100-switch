@@ -1,9 +1,10 @@
 // eofm: FM radio of the Samsung EO-IC100 USB-C earphone on the Switch (homebrew NRO).
 //
 // The receiver plays the radio inside the earphone (FM power on); the console's own sound keeps
-// going to the earphone as usual (usbhs-logmitm). Speaker output (0.3.0, experimental, RS press):
-// the receiver's recording mode sends the radio to IF1 and speaker.c plays it on the console; it
-// needs usbhs-logmitm 0.3.5 with deny_mic=1 and rewrite=none (attic/README.md has the history).
+// going to the earphone as usual (usbhs-logmitm). Speaker output (experimental, RS press): the
+// receiver's recording mode sends the radio to IF1, and usbhs-logmitm 0.3.6 (deny_mic=1,
+// rewrite=none) plays it on the console in the background (spkctl.c asks it to). 0.3.0-0.3.3 played
+// it in the app itself (attic/README.md has the history).
 //
 // The screen follows Samsung's radio app (Korean, dark): power button, channel scan, the frequency
 // with a favourite star, a dial scale, and favourites / channels tabs. Touch and buttons both work.
@@ -16,7 +17,7 @@
 #include "gfx.h"
 #include "log.h"
 #include "rds.h"
-#include "speaker.h"
+#include "spkctl.h"
 
 #define SETTINGS_PATH   APP_DIR "/settings.ini"
 #define MAX_LIST        24
@@ -80,6 +81,8 @@ static struct {
     u64        last_query, last_rssi, last_dev;
     // touch targets from the last frame
     box        b_power, b_scan, b_left, b_right, b_star, b_tab[2], b_chip[MAX_LIST];
+    spk_state  spk_state;                // usbhs-logmitm's speaker, read once a second in speaker mode
+    char       spk_why[96];
     box        b_dial, b_num;            // drag areas: the dial scale, the big frequency
     int        dial_lo, dial_hi, dial_x0, dial_x1;
     // a frequency drag in progress: 1 = on the dial (absolute), 2 = on the number (relative)
@@ -217,7 +220,7 @@ static void stop_seek(void) {
 static void radio_off(void) {
     stop_seek();
     if (R.mode == MODE_SPEAKER) {
-        spk_stop();
+        spkctl_request(false, 0);
         fm_set(&R.dev, FM_SET_RECORDING, 0);
     } else if (R.mode == MODE_EARPHONE) {
         fm_set(&R.dev, FM_SET_POWER, 0);
@@ -226,7 +229,7 @@ static void radio_off(void) {
 }
 
 // The receiver plays the radio inside the earphone (its "power" mode), or sends it to the console
-// as the USB microphone (its "recording" mode) for speaker.c. The receiver is set up the same way
+// as the USB microphone (its "recording" mode) for usbhs-logmitm's speaker. The receiver is set up the same way
 // in both.
 static void radio_start(radio_mode m) {
     if (R.dev.state != FMDEV_OPEN) {
@@ -261,15 +264,26 @@ static void radio_start(radio_mode m) {
     if (m != MODE_SPEAKER) return;
     // Speaker: the receiver records at full level, the app's volume scales the console output.
     fm_set(&R.dev, FM_SET_VOLUME, 15);
-    spk_set_gain(R.volume);
-    if (!spk_start()) {
-        spk_status st;
-        spk_get(&st);
-        say("스피커로 듣기 실패: %s", st.error);
+    spk_state st = spkctl_status(NULL, 0);
+    if (st == SPK_NO_SERVICE || !spkctl_request(true, R.volume)) {
+        say("스피커로 듣기: usbhs-logmitm 0.3.6 이상과 deny_mic=1이 필요합니다.");
         radio_start(MODE_EARPHONE);
         return;
     }
-    say("스피커로 듣는 중 (본체 볼륨과 ↑↓로 조절)");
+    char why[96] = "";
+    for (int i = 0; i < 20; i++) {   // the sysmodule looks every 0.3 s
+        svcSleepThread(100000000ULL);
+        st = spkctl_status(why, sizeof(why));
+        if (st == SPK_RUNNING || st == SPK_ERROR) break;
+    }
+    log_file("speaker: usbhs-logmitm says %d %s\n", st, why);
+    if (st != SPK_RUNNING) {
+        spkctl_request(false, 0);
+        say("스피커로 듣기 실패: %s", st == SPK_ERROR ? why : "응답 없음");
+        radio_start(MODE_EARPHONE);
+        return;
+    }
+    say("스피커로 듣는 중. +로 나가도 계속 나옵니다.");
 }
 
 static void radio_on(void) { radio_start(MODE_EARPHONE); }
@@ -286,7 +300,7 @@ static void toggle_speaker(void) {
 static void set_volume(int delta) {
     int nv = R.volume + delta;
     R.volume = (u8)(nv < 0 ? 0 : nv > 15 ? 15 : nv);
-    if (R.mode == MODE_SPEAKER) spk_set_gain(R.volume);
+    if (R.mode == MODE_SPEAKER) spkctl_request(true, R.volume);
     else if (R.mode != MODE_OFF) fm_set(&R.dev, FM_SET_VOLUME, R.volume);
     say("볼륨 %u / 15", R.volume);
 }
@@ -507,7 +521,10 @@ static void sync_from_device(void) {
         R.mode = MODE_EARPHONE;
         read_channel();
         if (R_SUCCEEDED(fm_get(&R.dev, FM_GET_VOLUME, v)) && v[0] <= 15) R.volume = v[0];
-    } else if (r[0]) {   // left in recording mode (speaker output of 0.1.3-0.2.0): switch it off
+    } else if (r[0] && spkctl_status(NULL, 0) == SPK_RUNNING) {   // on the speaker in the background
+        R.mode = MODE_SPEAKER;
+        read_channel();
+    } else if (r[0]) {   // left in recording mode with nobody playing it: switch it off
         fm_set(&R.dev, FM_SET_RECORDING, 0);
     }
 }
@@ -651,10 +668,8 @@ static void draw(void) {
     else if (R.dev.state == FMDEV_BUSY) snprintf(sub, sizeof(sub), "다른 프로그램이 이어폰을 쓰고 있습니다 (eoaudio 등).");
     else if (on && R.rds && R.rd.rt_any) snprintf(sub, sizeof(sub), "%.64s", R.rd.rt);
     else if (R.mode == MODE_SPEAKER) {
-        spk_status st;
-        spk_get(&st);
-        if (st.error[0]) snprintf(sub, sizeof(sub), "스피커: %s", st.error);
-        else snprintf(sub, sizeof(sub), "스피커로 듣는 중 · 입력 %d dBFS · %.0f초", st.peak_db, st.frames / 48000.0);
+        if (R.spk_state == SPK_ERROR) snprintf(sub, sizeof(sub), "스피커: %s", R.spk_why);
+        else snprintf(sub, sizeof(sub), R.spk_state == SPK_RUNNING ? "스피커로 듣는 중 (+로 나가도 계속)" : "스피커가 멈췄습니다");
     }
     else if (on) snprintf(sub, sizeof(sub), "이어폰으로 듣는 중");
     else if (R.dev.state == FMDEV_OPEN) snprintf(sub, sizeof(sub), "이어폰 줄이 안테나 역할을 합니다.");
@@ -889,10 +904,15 @@ int main(int argc, char **argv) {
             R.last_dev = t;
             fmdev_state before = R.dev.state;
             fm_poll_device(&R.dev);
+            if (R.mode == MODE_SPEAKER) {
+                spk_state was = R.spk_state;
+                R.spk_state = spkctl_status(R.spk_why, sizeof(R.spk_why));
+                if (R.spk_state != was) log_file("speaker: status %d %s\n", R.spk_state, R.spk_why);
+            }
             if (R.dev.state == FMDEV_OPEN && before != FMDEV_OPEN) {
                 sync_from_device();
             } else if (R.dev.state != FMDEV_OPEN && before == FMDEV_OPEN) {
-                if (R.mode == MODE_SPEAKER) spk_stop();
+                if (R.mode == MODE_SPEAKER) spkctl_request(false, 0);
                 R.mode = MODE_OFF;
                 R.seeking = R.scanning = false;
                 say("이어폰 연결이 끊어졌습니다.");
@@ -958,8 +978,8 @@ int main(int argc, char **argv) {
         draw();
     }
 
-    if (quit_off || R.mode == MODE_SPEAKER) radio_off();   // + leaves the radio playing in the earphone, not on the speaker
-    log_file("exit: radio %s\n", R.mode == MODE_EARPHONE ? "left on in the earphone" : "off");
+    if (quit_off) radio_off();   // + leaves the radio playing (in the earphone, or on the speaker by usbhs-logmitm)
+    log_file("exit: radio %s\n", R.mode == MODE_EARPHONE ? "left on in the earphone" : R.mode == MODE_SPEAKER ? "left on the speaker" : "off");
     settings_save();
     fm_close(&R.dev);
     if (R_SUCCEEDED(rc)) usbHsExit();

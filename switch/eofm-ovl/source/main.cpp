@@ -12,9 +12,10 @@
 extern "C" {
 #include "fm.h"
 #include "log.h"
+#include "spkctl.h"
 }
 
-#define OVL_VERSION   "0.1.2"
+#define OVL_VERSION   "0.2.0"
 #define SETTINGS_PATH "sdmc:/switch/eofm/settings.ini"
 #define MAX_LIST      24
 
@@ -44,6 +45,7 @@ struct {
     // main thread only
     bool synced;     // read the receiver's state since IF0 opened
     bool on;
+    bool speaker;    // on: the radio goes to the console speaker (usbhs-logmitm plays it); off: next power-on's output
     u16  freq;
     u8   volume;
     bool mono, mute, rds;
@@ -157,23 +159,31 @@ bool dev_open() { return S.dev.state == FMDEV_OPEN; }
 
 // Adopt what the receiver is doing (eofm left it playing, or it is off).
 void sync_from_device() {
-    u8 p[2], c[2], v[2];
+    u8 p[2], r[2] = {0, 0}, c[2], v[2];
     if (R_FAILED(fm_get(&S.dev, FM_GET_POWER, p))) return;
-    S.on = p[0] != 0;
-    if (S.on) {
+    fm_get(&S.dev, FM_GET_RECORDING, r);
+    bool spk = r[0] && spkctl_status(NULL, 0) == SPK_RUNNING;
+    S.on = p[0] != 0 || spk;
+    if (S.on) S.speaker = spk;
+    if (p[0]) {
         if (R_SUCCEEDED(fm_get(&S.dev, FM_GET_CHANNEL, c))) {
             u16 f = (u16)(c[0] | c[1] << 8);
             if (f >= 6400 && f <= 10800) S.freq = f;
         }
         if (R_SUCCEEDED(fm_get(&S.dev, FM_GET_VOLUME, v)) && v[0] <= 15) S.volume = v[0];
     }
-    log_file("ovl: receiver power %u, %u, volume %u\n", p[0], S.freq, S.volume);
+    if (spk && R_SUCCEEDED(fm_get(&S.dev, FM_GET_CHANNEL, c))) {
+        u16 f = (u16)(c[0] | c[1] << 8);
+        if (f >= 6400 && f <= 10800) S.freq = f;
+    }
+    log_file("ovl: receiver power %u, recording %u (speaker %d), %u, volume %u\n", p[0], r[0], spk, S.freq, S.volume);
     S.synced = true;
 }
 
-// eofm's radio_on: power, 200 ms, volume, (band, spacing), channel - in this order, or noise.
+// eofm's radio_start: power (or recording, for the speaker), 200 ms, volume, (band, spacing),
+// channel - in this order, or noise.
 bool radio_on() {
-    if (R_FAILED(fm_set(&S.dev, FM_SET_POWER, 1))) return false;
+    if (R_FAILED(fm_set(&S.dev, S.speaker ? FM_SET_RECORDING : FM_SET_POWER, 1))) return false;
     svcSleepThread(200000000ULL);
     fm_set(&S.dev, FM_SET_VOLUME, S.volume);
     if (reg().band != 0 || reg().spacing != 1) {
@@ -185,11 +195,32 @@ bool radio_on() {
     if (S.mono) fm_set(&S.dev, FM_SET_MONO, 1);
     if (S.rds) fm_set(&S.dev, FM_SET_RDS, 1);
     S.on = true;
-    return true;
+    if (!S.speaker) return true;
+    // The speaker: the receiver records at full level, usbhs-logmitm plays it scaled by the volume.
+    fm_set(&S.dev, FM_SET_VOLUME, 15);
+    spk_state st = SPK_NO_SERVICE;
+    if (spkctl_status(NULL, 0) != SPK_NO_SERVICE && spkctl_request(true, S.volume)) {
+        for (int i = 0; i < 20; i++) {
+            svcSleepThread(100000000ULL);
+            st = spkctl_status(NULL, 0);
+            if (st == SPK_RUNNING || st == SPK_ERROR) break;
+        }
+    }
+    log_file("ovl: speaker %d\n", st);
+    if (st == SPK_RUNNING) return true;
+    spkctl_request(false, 0);   // no speaker service (deny_mic=0?): back to the earphone
+    fm_set(&S.dev, FM_SET_RECORDING, 0);
+    S.speaker = false;
+    return radio_on();
 }
 
 void radio_off() {
-    fm_set(&S.dev, FM_SET_POWER, 0);
+    if (S.speaker) {
+        spkctl_request(false, 0);
+        fm_set(&S.dev, FM_SET_RECORDING, 0);
+    } else {
+        fm_set(&S.dev, FM_SET_POWER, 0);
+    }
     S.on = false;
 }
 
@@ -205,7 +236,8 @@ void set_volume(int delta) {
     int nv = S.volume + delta;
     S.volume = (u8)(nv < 0 ? 0 : nv > 15 ? 15 : nv);
     S.dirty = true;
-    if (S.on) fm_set(&S.dev, FM_SET_VOLUME, S.volume);
+    if (S.on && S.speaker) spkctl_request(true, S.volume);
+    else if (S.on) fm_set(&S.dev, FM_SET_VOLUME, S.volume);
 }
 
 // The next or previous station of the channel list from 채널 찾기, or of the favourites without one.
@@ -267,6 +299,22 @@ public:
         });
         list->addItem(m_power);
 
+        m_output = new tsl::elm::ListItem("출력");
+        m_output->setClickListener([](u64 keys) {
+            if (!(keys & HidNpadButton_A)) return false;
+            with_dev([] {
+                if (!S.on) {
+                    S.speaker = !S.speaker;   // for the next power-on
+                    return;
+                }
+                radio_off();
+                S.speaker = !S.speaker;
+                radio_on();
+            });
+            return true;
+        });
+        list->addItem(m_output);
+
         m_volume = new tsl::elm::ListItem("볼륨");
         m_volume->setClickListener([](u64 keys) {
             int d = (keys & HidNpadButton_AnyLeft) ? -1 : (keys & (HidNpadButton_AnyRight | HidNpadButton_A)) ? 1 : 0;
@@ -323,6 +371,7 @@ public:
     }
 
 private:
+    tsl::elm::ListItem *m_output = nullptr;
     tsl::elm::ListItem *m_status = nullptr, *m_power = nullptr, *m_volume = nullptr, *m_freq = nullptr,
                        *m_station = nullptr;
     u32 m_tick = 0;
@@ -347,6 +396,7 @@ private:
         char b[32];
         m_status->setValue(status_text(), !ready);
         m_power->setValue(S.on ? "켜짐 (A: 끄기)" : "꺼짐 (A: 켜기)", !ready);
+        m_output->setValue(S.speaker ? "본체 스피커 (A: 바꾸기)" : "이어폰 (A: 바꾸기)", !ready);
         snprintf(b, sizeof(b), "< %u / 15 >", S.volume);
         m_volume->setValue(b, !ready);
         m_freq->setValue("< " + fmt_freq(S.freq) + " >", !ready);

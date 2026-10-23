@@ -15,10 +15,8 @@ Result fm_set(fm_dev *d, u16 cmd, u16 value) { return 0; }
 Result fm_get(fm_dev *d, u16 cmd, u8 out[2]) { return out[0] = out[1] = 0; }
 Result fm_query(fm_dev *d, u8 out[12], u32 *got) { return *got = 0; }
 Result fm_reset(fm_dev *d) { return 0; }
-bool spk_start(void) { return false; }
-void spk_stop(void) {}
-void spk_get(spk_status *out) { memset(out, 0, sizeof(*out)); }
-void spk_set_gain(int vol15) {}
+bool spkctl_request(bool on, int gain) { return false; }
+spk_state spkctl_status(char *why, size_t size) { return SPK_OFF; }
 void log_init(void) {}
 void log_exit(void) {}
 const char *log_path(void) { return "-"; }
