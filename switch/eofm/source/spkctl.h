@@ -10,3 +10,9 @@ typedef enum { SPK_NO_SERVICE, SPK_OFF, SPK_RUNNING, SPK_ERROR } spk_state;
 
 bool spkctl_request(bool on, int gain);   // gain = the app's volume, 0..15
 spk_state spkctl_status(char *why, size_t size);
+
+// Output mode (usbhs-logmitm 0.3.7): earphone = everything on the earphone (the radio inside it),
+// speaker = everything on the console (the radio through IF1). A new mode applies once the earphone
+// is read again by the console: the caller re-enumerates it (fm_reset) after the driver took it.
+bool spkctl_set_mode(bool speaker);
+int spkctl_mode(void);   // 1 speaker, 0 earphone, -1 no driver that knows modes

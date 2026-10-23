@@ -18,6 +18,20 @@
 
 #define REQ_PATH    APP_DIR "/speaker.txt"          // written by eofm / eofm-ovl
 #define STATUS_PATH APP_DIR "/speaker_status.txt"   // written here, read by them
+#define MODE_PATH   APP_DIR "/mode.txt"             // "speaker" or "earphone", written by eofm / eofm-ovl
+#define MODE_STATUS APP_DIR "/mode_status.txt"      // the mode in force, written here
+
+// The output mode. Earphone: the descriptor rewrite (config rewrite=) makes the earphone the USB
+// output, so everything plays there, the radio inside the earphone. Speaker: no rewrite, and the
+// audio sysmodule may not take the microphone (deny_mic), so everything plays on the console and
+// the radio comes from IF1 (this file). The mitm thread only reads this variable: the file is read
+// here, never between a forward and its reply (0.2.2-0.3.3). A new mode applies when the audio
+// sysmodule reads the earphone again: eofm re-enumerates it after asking.
+static volatile bool g_speaker_mode;
+
+bool spk_speaker_mode(void) { return g_speaker_mode; }
+
+void spk_init_mode(bool speaker) { g_speaker_mode = speaker; }
 #define POLL_MS     300
 
 #define PKT        192      // 1 ms of 48 kHz 16-bit stereo
@@ -415,15 +429,45 @@ static bool read_request(int *gain) {
     return true;
 }
 
+static bool read_mode(bool fallback) {
+    char buf[16] = {0};
+    FILE *f = fopen(MODE_PATH, "r");
+    if (!f) return fallback;
+    fread(buf, 1, sizeof(buf) - 1, f);
+    fclose(f);
+    return !strncmp(buf, "speaker", 7) ? true : !strncmp(buf, "earphone", 8) ? false : fallback;
+}
+
+static void write_mode_status(bool speaker) {
+    FILE *f = fopen(MODE_STATUS, "w");
+    if (!f) return;
+    fputs(speaker ? "speaker\n" : "earphone\n", f);
+    fclose(f);
+}
+
 static void ctl_loop(void *arg) {
+    bool boot_speaker = (bool)(uintptr_t)arg;
     Result rc = usbHsInitialize();
     P.usb_init = R_SUCCEEDED(rc);
     log_printf("speaker: service ready (usb:hs %s); requests in %s", rc_str(rc), REQ_PATH);
     remove(REQ_PATH);   // a request from before this boot is stale: the receiver is off now
+    remove(MODE_PATH);   // every boot starts in the configured mode (earphone unless deny_mic=1)
     write_status("off\n");
+    write_mode_status(g_speaker_mode);
     int last_gain = -1;
     for (;;) {
         svcSleepThread(POLL_MS * 1000000ULL);
+        bool m = read_mode(boot_speaker);
+        if (m != g_speaker_mode) {
+            g_speaker_mode = m;
+            log_printf("mode: %s (applies when the earphone is read again)", m ? "speaker" : "earphone");
+            if (!m && P.running) {
+                spk_stop();
+                remove(REQ_PATH);
+                write_status("off\n");
+            }
+            write_mode_status(m);
+        }
         int gain = 15;
         bool want = P.usb_init && read_request(&gain);
         if (want && gain != last_gain) {
@@ -457,8 +501,8 @@ static void ctl_loop(void *arg) {
     }
 }
 
-void spk_service_start(void) {
+void spk_service_start(bool boot_speaker) {
     mutexInit(&P.lock);
-    Result rc = thread_spawn(&P.ctl_thread, ctl_loop, NULL, 0x2000, PRIO_MAIN);
+    Result rc = thread_spawn(&P.ctl_thread, ctl_loop, (void *)(uintptr_t)boot_speaker, 0x2000, PRIO_MAIN);
     log_printf("speaker: control thread %s", rc_str(rc));
 }

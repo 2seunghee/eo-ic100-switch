@@ -17,6 +17,8 @@ Result fm_query(fm_dev *d, u8 out[12], u32 *got) { return *got = 0; }
 Result fm_reset(fm_dev *d) { return 0; }
 bool spkctl_request(bool on, int gain) { return false; }
 spk_state spkctl_status(char *why, size_t size) { return SPK_OFF; }
+bool spkctl_set_mode(bool speaker) { return false; }
+int spkctl_mode(void) { return 0; }
 void log_init(void) {}
 void log_exit(void) {}
 const char *log_path(void) { return "-"; }

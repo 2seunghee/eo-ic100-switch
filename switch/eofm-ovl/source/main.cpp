@@ -15,7 +15,7 @@ extern "C" {
 #include "spkctl.h"
 }
 
-#define OVL_VERSION   "0.2.0"
+#define OVL_VERSION   "0.2.1"
 #define SETTINGS_PATH "sdmc:/switch/eofm/settings.ini"
 #define MAX_LIST      24
 
@@ -45,7 +45,9 @@ struct {
     // main thread only
     bool synced;     // read the receiver's state since IF0 opened
     bool on;
-    bool speaker;    // on: the radio goes to the console speaker (usbhs-logmitm plays it); off: next power-on's output
+    bool speaker;    // usbhs-logmitm's output mode: speaker (everything on the console) or earphone
+    bool switching;  // the mode changed: waiting for the re-enumerated earphone
+    bool pending_on; // and then the radio goes on again
     u16  freq;
     u8   volume;
     bool mono, mute, rds;
@@ -164,7 +166,7 @@ void sync_from_device() {
     fm_get(&S.dev, FM_GET_RECORDING, r);
     bool spk = r[0] && spkctl_status(NULL, 0) == SPK_RUNNING;
     S.on = p[0] != 0 || spk;
-    if (S.on) S.speaker = spk;
+    S.speaker = spkctl_mode() == 1;
     if (p[0]) {
         if (R_SUCCEEDED(fm_get(&S.dev, FM_GET_CHANNEL, c))) {
             u16 f = (u16)(c[0] | c[1] << 8);
@@ -208,10 +210,10 @@ bool radio_on() {
     }
     log_file("ovl: speaker %d\n", st);
     if (st == SPK_RUNNING) return true;
-    spkctl_request(false, 0);   // no speaker service (deny_mic=0?): back to the earphone
+    spkctl_request(false, 0);   // the driver could not play it: off again
     fm_set(&S.dev, FM_SET_RECORDING, 0);
-    S.speaker = false;
-    return radio_on();
+    S.on = false;
+    return false;
 }
 
 void radio_off() {
@@ -261,11 +263,13 @@ void step_station(int dir) {
 // ------------------------------------------------------------------ UI
 
 const char *status_text() {
+    if (S.switching) return "출력 모드를 바꾸는 중";
     switch (S.dev.state) {
     case FMDEV_NONE:     return "이어폰 없음";
     case FMDEV_SETTLING: return "준비 중";
     case FMDEV_BUSY:     return "라디오 앱이 사용 중";
     case FMDEV_OPEN:     return !S.synced ? "읽는 중" : S.on ? "켜짐" : "꺼짐";
+    default:             break;
     }
     return "";
 }
@@ -299,17 +303,30 @@ public:
         });
         list->addItem(m_power);
 
-        m_output = new tsl::elm::ListItem("출력");
+        // Earphone mode <-> speaker mode, as eofm's RS press: usbhs-logmitm takes the new mode and
+        // the earphone is re-enumerated, so that the console reads it again under that mode.
+        m_output = new tsl::elm::ListItem("출력 모드");
         m_output->setClickListener([](u64 keys) {
             if (!(keys & HidNpadButton_A)) return false;
             with_dev([] {
-                if (!S.on) {
-                    S.speaker = !S.speaker;   // for the next power-on
-                    return;
+                int cur = spkctl_mode();
+                if (cur < 0 || S.switching) return;
+                bool to_speaker = cur == 0;
+                bool was_on = S.on;
+                if (S.on) radio_off();
+                spkctl_set_mode(to_speaker);
+                int now = cur;
+                for (int i = 0; i < 20 && now != (int)to_speaker; i++) {
+                    svcSleepThread(100000000ULL);
+                    now = spkctl_mode();
                 }
-                radio_off();
-                S.speaker = !S.speaker;
-                radio_on();
+                if (now != (int)to_speaker) return;
+                S.speaker = to_speaker;
+                S.switching = true;
+                S.pending_on = was_on;
+                S.dev.quick_settle = false;   // sit out all of the plug-in's re-enumerations
+                Result rc = fm_reset(&S.dev);
+                log_file("ovl: mode %s, earphone reset %s\n", to_speaker ? "speaker" : "earphone", rc_str(rc));
             });
             return true;
         });
@@ -356,7 +373,15 @@ public:
     void update() override {
         mutexLock(&S.lock);
         if (!dev_open()) S.synced = false;
-        else if (!S.synced) sync_from_device();
+        else if (!S.synced) {
+            sync_from_device();
+            if (S.synced && S.switching) {   // back after a mode switch
+                S.switching = false;
+                S.dev.quick_settle = true;
+                if (S.pending_on) radio_on();
+                S.pending_on = false;
+            }
+        }
         mutexUnlock(&S.lock);
         if (++m_tick % 10 == 0) refresh();   // the labels are cheap, but there is no need every frame
     }
@@ -396,7 +421,8 @@ private:
         char b[32];
         m_status->setValue(status_text(), !ready);
         m_power->setValue(S.on ? "켜짐 (A: 끄기)" : "꺼짐 (A: 켜기)", !ready);
-        m_output->setValue(S.speaker ? "본체 스피커 (A: 바꾸기)" : "이어폰 (A: 바꾸기)", !ready);
+        if (S.switching) m_output->setValue("바꾸는 중... (10초쯤)", true);
+        else m_output->setValue(S.speaker ? "스피커 (A: 이어폰으로)" : "이어폰 (A: 스피커로)", !ready);
         snprintf(b, sizeof(b), "< %u / 15 >", S.volume);
         m_volume->setValue(b, !ready);
         m_freq->setValue("< " + fmt_freq(S.freq) + " >", !ready);

@@ -96,6 +96,7 @@ int main(int argc, char **argv) {
         log_printf("config: %s not readable, using defaults", CONFIG_PATH);
     }
 
+    spk_init_mode(cfg.deny_mic);   // deny_mic=1: boot in speaker mode (eofm switches modes at run time)
     int installed = 0;
     if (cfg.enabled) installed = mitm_start(&cfg);
     else log_printf("enabled=0 in config.ini: no mitm, the process only idles");
@@ -109,7 +110,7 @@ int main(int argc, char **argv) {
     log_printf("%d of %d service(s) intercepted. Log: %s", installed, cfg.n_services, log_path());
     log_sync();
     if (cfg.enabled && cfg.remote) remote_start();
-    if (cfg.enabled && cfg.deny_mic) spk_service_start();   // the radio on the speaker, asked for by eofm
+    if (cfg.enabled) spk_service_start(cfg.deny_mic);   // output modes and the radio on the speaker, for eofm
 
     // The mitm thread does the work. This process never exits on its own: an intercepted client's
     // sessions end with it, and the audio sysmodule would not survive that.

@@ -82,6 +82,8 @@ static struct {
     // touch targets from the last frame
     box        b_power, b_scan, b_left, b_right, b_star, b_tab[2], b_chip[MAX_LIST];
     spk_state  spk_state;                // usbhs-logmitm's speaker, read once a second in speaker mode
+    bool       switching;                // the output mode changed: waiting for the earphone to come back
+    radio_mode pending;                  // and then the radio goes on in this mode (MODE_OFF: stays off)
     char       spk_why[96];
     box        b_dial, b_num;            // drag areas: the dial scale, the big frequency
     int        dial_lo, dial_hi, dial_x0, dial_x1;
@@ -286,15 +288,42 @@ static void radio_start(radio_mode m) {
     say("스피커로 듣는 중. +로 나가도 계속 나옵니다.");
 }
 
-static void radio_on(void) { radio_start(MODE_EARPHONE); }
+// In the output mode usbhs-logmitm is in: the earphone's own output is silent in speaker mode (the
+// console sends it nothing), and IF1 is the audio sysmodule's in earphone mode.
+static void radio_on(void) { radio_start(spkctl_mode() == 1 ? MODE_SPEAKER : MODE_EARPHONE); }
 
-// RS press: the radio between the earphone and the console speaker.
-static void toggle_speaker(void) {
-    if (R.mode == MODE_OFF) {
-        say("라디오를 켜세요.");
+// RS press: earphone mode (everything on the earphone) <-> speaker mode (everything on the
+// console). usbhs-logmitm 0.3.7 takes the new mode, and the earphone is re-enumerated so that the
+// console reads it again under that mode; the radio comes back on when the earphone does.
+static void switch_mode(void) {
+    if (R.dev.state != FMDEV_OPEN) {
+        say("이어폰을 연결하세요.");
         return;
     }
-    radio_start(R.mode == MODE_SPEAKER ? MODE_EARPHONE : MODE_SPEAKER);
+    int cur = spkctl_mode();
+    if (cur < 0) {
+        say("모드를 바꾸려면 usbhs-logmitm 0.3.7 이상이 필요합니다.");
+        return;
+    }
+    bool to_speaker = cur == 0;
+    bool was_on = R.mode != MODE_OFF;
+    radio_off();
+    spkctl_set_mode(to_speaker);
+    int now = cur;
+    for (int i = 0; i < 20 && now != (int)to_speaker; i++) {   // the driver looks every 0.3 s
+        svcSleepThread(100000000ULL);
+        now = spkctl_mode();
+    }
+    if (now != (int)to_speaker) {
+        say("드라이버가 모드를 바꾸지 않았습니다.");
+        return;
+    }
+    R.pending = was_on ? (to_speaker ? MODE_SPEAKER : MODE_EARPHONE) : MODE_OFF;
+    R.switching = true;
+    R.dev.quick_settle = false;   // sit out all of the plug-in's re-enumerations
+    Result rc = fm_reset(&R.dev);
+    log_file("mode: %s, earphone reset: %s\n", to_speaker ? "speaker" : "earphone", rc_str(rc));
+    say(to_speaker ? "스피커 모드로 바꾸는 중... (10초쯤)" : "이어폰 모드로 바꾸는 중... (10초쯤)");
 }
 
 static void set_volume(int delta) {
@@ -665,6 +694,7 @@ static void draw(void) {
         fmt_freq(fs, sizeof(fs), R.freq);
         snprintf(sub, sizeof(sub), "%s %s MHz", R.scanning ? "채널을 찾는 중..." : "방송을 찾는 중...", fs);
     }
+    else if (R.switching) snprintf(sub, sizeof(sub), "출력 모드를 바꾸는 중... 이어폰이 다시 연결됩니다.");
     else if (R.dev.state == FMDEV_BUSY) snprintf(sub, sizeof(sub), "다른 프로그램이 이어폰을 쓰고 있습니다 (eoaudio 등).");
     else if (on && R.rds && R.rd.rt_any) snprintf(sub, sizeof(sub), "%.64s", R.rd.rt);
     else if (R.mode == MODE_SPEAKER) {
@@ -784,7 +814,7 @@ static void draw(void) {
     R.b_tab[1] = mkbox(tx + tw / 2, tyb, tw / 2, th);
 
     // ---- button help, both sides of the tab bar
-    static const char *help_l[] = {"A  전원", "X  채널 찾기", "Y  즐겨찾기", "LS 누름  모노   RS 누름  스피커/이어폰"};
+    static const char *help_l[] = {"A  전원", "X  채널 찾기", "Y  즐겨찾기", "LS 누름  모노   RS 누름  이어폰/스피커 모드"};
     static const char *help_r[] = {"←→  0.1MHz   L R  1MHz", "ZL ZR  방송 탐색   ↑↓  볼륨", "RS ←→  목록 이동   -  탭",
                                    "+  나가기   B  끄고 나가기"};
     for (int i = 0; i < 4; i++) {
@@ -911,11 +941,20 @@ int main(int argc, char **argv) {
             }
             if (R.dev.state == FMDEV_OPEN && before != FMDEV_OPEN) {
                 sync_from_device();
+                if (R.switching) {
+                    R.switching = false;
+                    R.dev.quick_settle = true;
+                    bool spk = spkctl_mode() == 1;
+                    if (R.pending != MODE_OFF) radio_start(R.pending);
+                    R.pending = MODE_OFF;
+                    if (R.mode == MODE_OFF || !spk)
+                        say(spk ? "스피커 모드: 모든 소리가 본체 스피커로 나옵니다." : "이어폰 모드: 모든 소리가 이어폰으로 나옵니다.");
+                }
             } else if (R.dev.state != FMDEV_OPEN && before == FMDEV_OPEN) {
                 if (R.mode == MODE_SPEAKER) spkctl_request(false, 0);
                 R.mode = MODE_OFF;
                 R.seeking = R.scanning = false;
-                say("이어폰 연결이 끊어졌습니다.");
+                if (!R.switching) say("이어폰 연결이 끊어졌습니다.");
             }
         }
 
@@ -955,7 +994,7 @@ int main(int argc, char **argv) {
         if (down & HidNpadButton_StickRRight) step_list(1);
         if (down & HidNpadButton_StickRLeft) step_list(-1);
         if (down & HidNpadButton_Minus) R.tab = R.tab == TAB_FAV ? TAB_CH : TAB_FAV;
-        if (down & HidNpadButton_StickR) toggle_speaker();
+        if (down & HidNpadButton_StickR) switch_mode();
         if (down & HidNpadButton_StickL) {
             R.mono = !R.mono;
             if (R.mode != MODE_OFF) fm_set(&R.dev, FM_SET_MONO, R.mono);

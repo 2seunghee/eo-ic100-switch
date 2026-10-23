@@ -5,6 +5,7 @@
 #include "log.h"
 #include "remote.h"
 #include "rewrite.h"
+#include "spk.h"
 
 // One thread serves everything with svcReplyAndReceive: the mitm ports (new clients), the query
 // sessions (sm asks whether to intercept a process) and the intercepted sessions. A request is
@@ -431,7 +432,7 @@ static bool audio_hidden(void) { return false; }   // hiding from audio crashed 
 static void rewrite_ctrl_data(msess *s, objst *o, size_t len) {
     if (s->program != PROGRAM_AUDIO || !is_eo_ic100(o->vid, o->pid)) return;
     if (o->setup[0] != 0x80 || o->setup[1] != 6 || o->setup[3] != 2 || len < 9 || !o->ctrl_buf) return;
-    unsigned rules = M.cfg->rewrite;
+    unsigned rules = spk_speaker_mode() ? 0 : M.cfg->rewrite;   // speaker mode: the earphone is no output
     if (!rules) return;
     static u8 buf[CTRL_DUMP], check[CTRL_DUMP];
     size_t n = len < sizeof(buf) ? len : sizeof(buf);
@@ -729,7 +730,7 @@ static bool handle_request(int i) {
     // real service with an interface ID that does not exist, so audio gets usb:hs's own error for it
     // and IF1 stays free for eofm (the radio to the speaker). Its interface list is left alone: a
     // shortened list crashed audio (0.3.0).
-    if (request && M.cfg->deny_mic && s->program == PROGRAM_AUDIO && o->kind == OBJ_ROOT && cmd == ROOT_ACQUIRE &&
+    if (request && spk_speaker_mode() && s->program == PROGRAM_AUDIO && o->kind == OBJ_ROOT && cmd == ROOT_ACQUIRE &&
         in_len >= 4 && in_tls) {
         s32 id;
         u16 vid = 0, pid = 0;

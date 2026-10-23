@@ -33,3 +33,23 @@ spk_state spkctl_status(char *why, size_t size) {
     }
     return SPK_OFF;
 }
+
+#define MODE_PATH   "sdmc:/switch/usbhs-logmitm/mode.txt"
+#define MODE_STATUS "sdmc:/switch/usbhs-logmitm/mode_status.txt"
+
+bool spkctl_set_mode(bool speaker) {
+    FILE *f = fopen(MODE_PATH, "w");
+    if (!f) return false;
+    fputs(speaker ? "speaker\n" : "earphone\n", f);
+    fclose(f);
+    return true;
+}
+
+int spkctl_mode(void) {
+    char buf[16] = {0};
+    FILE *f = fopen(MODE_STATUS, "r");
+    if (!f) return -1;
+    fread(buf, 1, sizeof(buf) - 1, f);
+    fclose(f);
+    return !strncmp(buf, "speaker", 7) ? 1 : !strncmp(buf, "earphone", 8) ? 0 : -1;
+}

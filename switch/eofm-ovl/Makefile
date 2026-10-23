@@ -39,7 +39,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 
 APP_TITLE	:=	EO Radio
-APP_VERSION	:=	0.2.0
+APP_VERSION	:=	0.2.1
 
 TARGET		:=	eofm-ovl
 BUILD		:=	build

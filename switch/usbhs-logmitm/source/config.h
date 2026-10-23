@@ -21,7 +21,7 @@ typedef struct {
     int      log_keep;           // log files kept
     unsigned rewrite;            // RW_* rules applied to the EO-IC100's config descriptor (rewrite.h)
     bool     remote;             // read the earphone's remote buttons (hides them from hid; needs programs=...,hid)
-    bool     deny_mic;           // audio may not acquire the EO-IC100's microphone (IF1): eofm plays the radio from it
+    bool     deny_mic;           // boot in speaker mode (spk.c); eofm switches the mode at run time
 } lm_config;
 
 void config_defaults(lm_config *c);
