@@ -320,10 +320,11 @@ static void switch_mode(void) {
     }
     R.pending = was_on ? (to_speaker ? MODE_SPEAKER : MODE_EARPHONE) : MODE_OFF;
     R.switching = true;
-    R.dev.quick_settle = false;   // sit out all of the plug-in's re-enumerations
+    // A reset re-enumerates once, and the audio sysmodule has read it again within 0.5 s (0.4.1 log):
+    // quick_settle (audio holds IF2) is enough, no 6 s wait; the device is polled faster meanwhile.
     Result rc = fm_reset(&R.dev);
     log_file("mode: %s, earphone reset: %s\n", to_speaker ? "speaker" : "earphone", rc_str(rc));
-    say(to_speaker ? "스피커 모드로 바꾸는 중... (10초쯤)" : "이어폰 모드로 바꾸는 중... (10초쯤)");
+    say(to_speaker ? "스피커 모드로 바꾸는 중... (몇 초)" : "이어폰 모드로 바꾸는 중... (몇 초)");
 }
 
 static void set_volume(int delta) {
@@ -930,7 +931,7 @@ int main(int argc, char **argv) {
         u64 down = padGetButtonsDown(&g_pad), held = padGetButtons(&g_pad);
         u64 t = now_ms();
 
-        if (R_SUCCEEDED(rc) && t - R.last_dev >= 1000) {
+        if (R_SUCCEEDED(rc) && t - R.last_dev >= (R.switching ? 250u : 1000u)) {
             R.last_dev = t;
             fmdev_state before = R.dev.state;
             fm_poll_device(&R.dev);

@@ -15,7 +15,7 @@ extern "C" {
 #include "spkctl.h"
 }
 
-#define OVL_VERSION   "0.2.1"
+#define OVL_VERSION   "0.2.2"
 #define SETTINGS_PATH "sdmc:/switch/eofm/settings.ini"
 #define MAX_LIST      24
 
@@ -153,7 +153,7 @@ void poll_thread(void *) {
         mutexLock(&S.lock);
         fm_poll_device(&S.dev);
         mutexUnlock(&S.lock);
-        for (int i = 0; i < 10 && !S.stop; i++) svcSleepThread(100000000ULL);
+        for (int i = 0; i < (S.switching ? 2 : 10) && !S.stop; i++) svcSleepThread(100000000ULL);
     }
 }
 
@@ -324,7 +324,7 @@ public:
                 S.speaker = to_speaker;
                 S.switching = true;
                 S.pending_on = was_on;
-                S.dev.quick_settle = false;   // sit out all of the plug-in's re-enumerations
+                // one re-enumeration, read again by audio within 0.5 s: quick_settle is enough
                 Result rc = fm_reset(&S.dev);
                 log_file("ovl: mode %s, earphone reset %s\n", to_speaker ? "speaker" : "earphone", rc_str(rc));
             });
@@ -421,7 +421,7 @@ private:
         char b[32];
         m_status->setValue(status_text(), !ready);
         m_power->setValue(S.on ? "켜짐 (A: 끄기)" : "꺼짐 (A: 켜기)", !ready);
-        if (S.switching) m_output->setValue("바꾸는 중... (10초쯤)", true);
+        if (S.switching) m_output->setValue("바꾸는 중... (몇 초)", true);
         else m_output->setValue(S.speaker ? "스피커 (A: 이어폰으로)" : "이어폰 (A: 스피커로)", !ready);
         snprintf(b, sizeof(b), "< %u / 15 >", S.volume);
         m_volume->setValue(b, !ready);
