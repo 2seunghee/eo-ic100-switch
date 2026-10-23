@@ -92,6 +92,7 @@ static void write_status(const char *text) {
 static void fail(const char *what, Result rc) {
     snprintf(P.error, sizeof(P.error), "%s%s%s", what, rc ? " " : "", rc ? rc_str(rc) : "");
     log_printf("speaker: %s", P.error);
+    log_sync();   // on the SD card now: the next thing may be a hang (0.3.7 lost its last lines)
     P.failed = true;
 }
 
@@ -115,6 +116,22 @@ static bool find_if1(UsbHsInterface *out) {
     return false;
 }
 
+// IF1 of the plug-in being captured is still listed (held by us, so in the "all" list).
+static bool if1_present(void) {
+    static UsbHsInterface list[8];
+    UsbHsInterfaceFilter f;
+    memset(&f, 0, sizeof(f));
+    f.Flags = UsbHsInterfaceFilterFlags_idVendor;
+    f.idVendor = 0x04E8;
+    s32 n = 0;
+    if (R_FAILED(usbHsQueryAllInterfaces(&f, list, sizeof(list), &n))) return true;   // cannot tell: keep going
+    for (s32 i = 0; i < n; i++)
+        if (list[i].deviceID == P.ifs.inf.deviceID && list[i].timestamp == P.ifs.inf.timestamp &&
+            list[i].inf.interface_desc.bInterfaceNumber == 1)
+            return true;
+    return false;
+}
+
 static void submit(int bi) {
     for (int attempt = 0; attempt < 2; attempt++) {
         u64 id = (P.seq++ << 8) | (u64)bi;
@@ -129,6 +146,9 @@ static void submit(int bi) {
         }
         if (rc != RC_FRAME_WINDOW || attempt) {
             if (P.submit_fail++ < 5) log_printf("speaker: BatchBufferAsync: %s", rc_str(rc));
+            // Not the frame window: the endpoint is gone (unplugged). Stop here rather than retry
+            // (0.3.7 kept going after an unplug and the console went down).
+            if (rc != RC_FRAME_WINDOW && !P.failed) fail("BatchBufferAsync", rc);
             break;
         }
         P.restarts++;
@@ -175,7 +195,12 @@ static void on_report(const UsbHsXferReport *r, u64 *last_ok) {
     mutexUnlock(&P.lock);
     if (total) *last_ok = now_ms();
     b->busy = false;
-    if (!P.stop) submit(bi);
+    // A batch whose transfers all failed: unplugged. Do not send it again (see submit()).
+    bool all_failed = true;
+    for (int i = 0; i < UPB; i++)
+        if (b->got[i]) all_failed = false;
+    if (all_failed && P.bad_urbs >= UPB && !P.failed) fail("the earphone stopped answering (unplugged?)", 0);
+    if (!P.stop && !P.failed) submit(bi);
 }
 
 static void cap_loop(void *arg) {
@@ -185,13 +210,27 @@ static void cap_loop(void *arg) {
     usbHsIfGetCurrentFrame(&P.ifs, &cur);
     P.frame_next = cur + FRAME_LEAD;
     for (int bi = 0; bi < NB; bi++) submit(bi);
-    while (!P.stop) {
-        if (R_FAILED(eventWait(usbHsEpGetXferEvent(&P.ep), 20000000ULL))) {
+    // An unplug must end this loop at once: 0.3.7 went on after one, and the console went down
+    // (no crash report). Watch the interface state event too, and stop as soon as IF1 is gone.
+    Event *state = usbHsGetInterfaceStateChangeEvent();
+    while (!P.stop && !P.failed) {
+        s32 idx = -1;
+        Result wr = state ? waitMulti(&idx, 20000000ULL, waiterForEvent(usbHsEpGetXferEvent(&P.ep)), waiterForEvent(state))
+                          : eventWait(usbHsEpGetXferEvent(&P.ep), 20000000ULL);
+        if (state && R_SUCCEEDED(wr) && idx == 1) {
+            eventClear(state);
+            if (!if1_present()) {
+                fail("the earphone was unplugged", 0);
+                return;
+            }
+            continue;
+        }
+        if (R_FAILED(wr)) {
             if (now_ms() - last_ok > 3000) {
                 fail("no sound from the earphone for 3 s (unplugged?)", 0);
                 return;
             }
-            for (int bi = 0; bi < NB; bi++)
+            for (int bi = 0; bi < NB && !P.failed; bi++)
                 if (!P.b[bi].busy) submit(bi);
             continue;
         }
@@ -207,6 +246,7 @@ static void cap_loop(void *arg) {
             }
             for (u32 k = 0; k < count && k < 32; k++) on_report(&reps[k], &last_ok);
         }
+        if (!count) svcSleepThread(1000000ULL);   // an event with nothing to read: never spin
     }
 }
 
@@ -398,10 +438,12 @@ static bool spk_start(void) {
     P.audout_ok = true;
     rc = audoutStartAudioOut();
     log_printf("speaker: audout %u Hz, %u ch, start %s", audoutGetSampleRate(), audoutGetChannelCount(), rc_str(rc));
-    rc = thread_spawn(&P.cap_thread, cap_loop, NULL, 0x2000, PRIO_MITM + 1);
+    // Below the mitm thread, at the main priority: a spinning thread here on the system core must
+    // never hold up the console (see cap_loop).
+    rc = thread_spawn(&P.cap_thread, cap_loop, NULL, 0x2000, PRIO_MAIN);
     P.cap_ok = R_SUCCEEDED(rc);
     if (P.cap_ok) {
-        rc = thread_spawn(&P.play_thread, play_loop, NULL, 0x2000, PRIO_MITM + 2);
+        rc = thread_spawn(&P.play_thread, play_loop, NULL, 0x2000, PRIO_MAIN + 1);
         P.play_ok = R_SUCCEEDED(rc);
     }
     if (!P.cap_ok || !P.play_ok) {

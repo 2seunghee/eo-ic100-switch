@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define USBHSLOG_VERSION "0.3.7"
+#define USBHSLOG_VERSION "0.3.8"
 #define APP_DIR          "sdmc:/switch/usbhs-logmitm"
 
 #define ALIGN_UP(x, a) (((x) + ((a) - 1)) & ~((a) - 1))
