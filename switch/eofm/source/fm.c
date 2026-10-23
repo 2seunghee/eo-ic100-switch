@@ -73,8 +73,9 @@ void fm_poll_device(fm_dev *d) {
         d->inserted = g_list[k].timestamp;
         d->pid = g_list[k].device_desc.idProduct;
         d->seen_ms = now_ms();
-        log_file("fm: earphone 04e8:%04x seen (device %u), waiting %d ms\n", d->pid, d->device_id, SETTLE_MS);
-        return;
+        log_file("fm: earphone 04e8:%04x seen (device %u), waiting %d ms%s\n", d->pid, d->device_id, SETTLE_MS,
+                 d->quick_settle ? " unless audio holds IF2 already" : "");
+        if (!d->quick_settle) return;   // quick: plugged in long before the app started? Look now.
     }
     if (d->passive) return;
     bool settling = now_ms() - d->seen_ms < SETTLE_MS;

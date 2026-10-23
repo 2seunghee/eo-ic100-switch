@@ -14,7 +14,7 @@ extern "C" {
 #include "log.h"
 }
 
-#define OVL_VERSION   "0.1.1"
+#define OVL_VERSION   "0.1.2"
 #define SETTINGS_PATH "sdmc:/switch/eofm/settings.ini"
 #define MAX_LIST      24
 

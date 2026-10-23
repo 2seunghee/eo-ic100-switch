@@ -807,7 +807,8 @@ static bool on_touch(int x, int y) {
 }
 
 // ---- frequency drag: on the dial the marker follows the finger; on the big number every
-// DRAG_PX_PER_STEP pixels sideways is one step (right = up). The receiver is retuned at most every
+// DRAG_PX_PER_STEP pixels sideways is one step, moved like a tuning dial: dragging left raises the
+// frequency (0.3.2 had it the other way round). The receiver is retuned at most every
 // DRAG_TUNE_MS while the finger moves, and once more where it lets go.
 #define DRAG_PX_PER_STEP 12
 #define DRAG_TUNE_MS     80
@@ -815,7 +816,7 @@ static bool on_touch(int x, int y) {
 static u16 drag_target(int x) {
     int f;
     if (R.drag == 1) f = R.dial_lo + (x - R.dial_x0) * (R.dial_hi - R.dial_lo) / (R.dial_x1 - R.dial_x0);
-    else f = R.drag_f0 + (x - R.drag_x0) / DRAG_PX_PER_STEP * reg()->step;
+    else f = R.drag_f0 - (x - R.drag_x0) / DRAG_PX_PER_STEP * reg()->step;
     int step = reg()->step;
     f = reg()->min + (f - reg()->min + step / 2) / step * step;
     return (u16)(f < reg()->min ? reg()->min : f > reg()->max ? reg()->max : f);
@@ -864,6 +865,9 @@ int main(int argc, char **argv) {
         return 0;
     }
     settings_load();
+    // Use the earphone at once when the audio sysmodule is done with this plug-in (it holds IF2);
+    // the 6 s wait is only for an earphone plugged in just now.
+    R.dev.quick_settle = true;
     rds_reset(&R.rd);
     // A leftover override (a crash in speaker output) keeps the earphone a microphone-only device:
     // treat it as such, so that switching on in earphone output undoes it.
