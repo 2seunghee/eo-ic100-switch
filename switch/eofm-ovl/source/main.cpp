@@ -15,7 +15,7 @@ extern "C" {
 #include "spkctl.h"
 }
 
-#define OVL_VERSION   "0.2.2"
+#define OVL_VERSION   "0.2.3"
 #define SETTINGS_PATH "sdmc:/switch/eofm/settings.ini"
 #define MAX_LIST      24
 
@@ -48,6 +48,7 @@ struct {
     bool speaker;    // usbhs-logmitm's output mode: speaker (everything on the console) or earphone
     bool switching;  // the mode changed: waiting for the re-enumerated earphone
     bool pending_on; // and then the radio goes on again
+    u64  switch_since;
     u16  freq;
     u8   volume;
     bool mono, mute, rds;
@@ -210,16 +211,31 @@ bool radio_on() {
     }
     log_file("ovl: speaker %d\n", st);
     if (st == SPK_RUNNING) return true;
-    spkctl_request(false, 0);   // the driver could not play it: off again
+    // The driver could not play it: off again, and back to earphone mode by hand (it never played,
+    // so the driver does not go back by itself), the radio on there.
+    spkctl_request(false, 0);
     fm_set(&S.dev, FM_SET_RECORDING, 0);
     S.on = false;
+    spkctl_set_mode(false);
+    for (int i = 0; i < 20 && spkctl_mode() != 0; i++) svcSleepThread(100000000ULL);
+    S.speaker = false;
+    S.switching = true;
+    S.switch_since = armTicksToNs(armGetSystemTick()) / 1000000;
+    S.pending_on = true;
+    fm_reset(&S.dev);
     return false;
 }
 
 void radio_off() {
     if (S.speaker) {
+        // Speaker mode lasts only while the radio plays on the speaker: usbhs-logmitm (0.3.10) goes
+        // back to earphone mode when the playback ends, and re-enumerates the earphone for it.
         spkctl_request(false, 0);
         fm_set(&S.dev, FM_SET_RECORDING, 0);
+        S.speaker = false;
+        S.switching = true;
+        S.switch_since = armTicksToNs(armGetSystemTick()) / 1000000;
+        S.pending_on = false;
     } else {
         fm_set(&S.dev, FM_SET_POWER, 0);
     }
@@ -313,6 +329,12 @@ public:
                 if (cur < 0 || S.switching) return;
                 bool to_speaker = cur == 0;
                 bool was_on = S.on;
+                if (to_speaker && !was_on) return;   // speaker mode only with the radio on
+                if (!to_speaker && S.on && S.speaker) {   // the driver goes back by itself
+                    radio_off();
+                    S.pending_on = true;
+                    return;
+                }
                 if (S.on) radio_off();
                 spkctl_set_mode(to_speaker);
                 int now = cur;
@@ -323,6 +345,7 @@ public:
                 if (now != (int)to_speaker) return;
                 S.speaker = to_speaker;
                 S.switching = true;
+                S.switch_since = armTicksToNs(armGetSystemTick()) / 1000000;
                 S.pending_on = was_on;
                 // one re-enumeration, read again by audio within 0.5 s: quick_settle is enough
                 Result rc = fm_reset(&S.dev);
@@ -381,6 +404,10 @@ public:
                 if (S.pending_on) radio_on();
                 S.pending_on = false;
             }
+        } else if (S.switching && armTicksToNs(armGetSystemTick()) / 1000000 - S.switch_since > 5000) {
+            S.switching = false;   // the earphone never went away (an older driver): nothing to wait for
+            if (S.pending_on) radio_on();
+            S.pending_on = false;
         }
         mutexUnlock(&S.lock);
         if (++m_tick % 10 == 0) refresh();   // the labels are cheap, but there is no need every frame
@@ -422,7 +449,8 @@ private:
         m_status->setValue(status_text(), !ready);
         m_power->setValue(S.on ? "켜짐 (A: 끄기)" : "꺼짐 (A: 켜기)", !ready);
         if (S.switching) m_output->setValue("바꾸는 중... (몇 초)", true);
-        else m_output->setValue(S.speaker ? "스피커 (A: 이어폰으로)" : "이어폰 (A: 스피커로)", !ready);
+        else if (S.speaker) m_output->setValue("스피커 (A: 이어폰으로)", !ready);
+        else m_output->setValue(S.on ? "이어폰 (A: 스피커로)" : "이어폰 (라디오를 켜면 바꿀 수 있음)", !ready || !S.on);
         snprintf(b, sizeof(b), "< %u / 15 >", S.volume);
         m_volume->setValue(b, !ready);
         m_freq->setValue("< " + fmt_freq(S.freq) + " >", !ready);

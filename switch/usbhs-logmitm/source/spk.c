@@ -299,9 +299,15 @@ static bool usb_open(void) {
     return true;
 }
 
-static void usb_close(void) {
+// reset: re-enumerate the earphone on the way out, so that the console reads it again (under
+// earphone mode: see leave_speaker_mode()).
+static void usb_close(bool reset) {
     if (P.ep_ok) usbHsEpClose(&P.ep);   // cancels the transfers in flight; only then may the buffers go
     P.ep_ok = false;
+    if (P.if_ok && reset) {
+        Result rc = usbHsIfResetDevice(&P.ifs);
+        log_printf("speaker: earphone reset (back to earphone mode): %s", rc_str(rc));
+    }
     if (P.if_ok) {
         usbHsIfSetInterface(&P.ifs, NULL, 0);
         usbHsIfClose(&P.ifs);
@@ -368,7 +374,7 @@ static void play_loop(void *arg) {
 
 // ------------------------------------------------------------------ start / stop
 
-static void spk_stop(void) {
+static void spk_stop(bool reset) {
     if (!P.running && !P.if_ok && !P.audout_ok) return;
     P.stop = true;
     if (P.cap_ok) {
@@ -381,7 +387,7 @@ static void spk_stop(void) {
         threadClose(&P.play_thread);
         P.play_ok = false;
     }
-    usb_close();
+    usb_close(reset);
     if (P.audout_ok) {
         audoutStopAudioOut();
         audoutExit();
@@ -421,18 +427,18 @@ static bool spk_start(void) {
     }
     if (!mem) {
         fail("out of memory", 0);
-        spk_stop();
+        spk_stop(false);
         return false;
     }
     memset(P.region, 0, (size_t)SLOT * NB);
     if (!usb_open()) {
-        spk_stop();
+        spk_stop(false);
         return false;
     }
     Result rc = audoutInitialize();
     if (R_FAILED(rc)) {
         fail("audout", rc);
-        spk_stop();
+        spk_stop(false);
         return false;
     }
     P.audout_ok = true;
@@ -448,7 +454,7 @@ static bool spk_start(void) {
     }
     if (!P.cap_ok || !P.play_ok) {
         fail("threads", rc);
-        spk_stop();
+        spk_stop(false);
         return false;
     }
     P.running = true;
@@ -522,6 +528,34 @@ static void unmute_after_unplug(bool audctl_ok, bool *was_present) {
     log_printf("mode: earphone unplugged in speaker mode, speaker not muted");
 }
 
+// Speaker mode lasts only while the radio plays on the speaker (the user's rule, 0.3.10): when the
+// playback ends - the radio switched off, the earphone pulled out, a failure - the mode goes back to
+// earphone, so that the earphone is an output again. mode.txt follows, for eofm and the overlay.
+static void leave_speaker_mode(const char *why) {
+    if (!g_speaker_mode) return;
+    g_speaker_mode = false;
+    FILE *f = fopen(MODE_PATH, "w");
+    if (f) {
+        fputs("earphone\n", f);
+        fclose(f);
+    }
+    write_mode_status(false);
+    log_printf("mode: earphone (%s)", why);
+}
+
+static void unmute_speaker_soon(bool audctl_ok) {
+    if (!audctl_ok) return;
+    for (int i = 0; i < 10; i++) {   // the mute comes a little after the unplug
+        svcSleepThread(100000000ULL);
+        bool mute = false;
+        if (R_SUCCEEDED(audctlIsTargetMute(&mute, AudioTarget_Speaker)) && mute) {
+            Result rc = audctlSetTargetMute(AudioTarget_Speaker, false);
+            log_printf("mode: earphone unplugged in speaker mode, speaker unmuted: %s", rc_str(rc));
+            return;
+        }
+    }
+}
+
 static void ctl_loop(void *arg) {
     bool boot_speaker = (bool)(uintptr_t)arg;
     Result rc = usbHsInitialize();
@@ -542,7 +576,7 @@ static void ctl_loop(void *arg) {
             g_speaker_mode = m;
             log_printf("mode: %s (applies when the earphone is read again)", m ? "speaker" : "earphone");
             if (!m && P.running) {
-                spk_stop();
+                spk_stop(false);   // eofm re-enumerates the earphone itself after asking
                 remove(REQ_PATH);
                 write_status("off\n");
             }
@@ -556,7 +590,10 @@ static void ctl_loop(void *arg) {
             last_gain = gain;
         }
         if (P.failed) {   // the capture gave up (unplugged...): off until asked again
-            spk_stop();
+            bool gone = !earphone_present();
+            leave_speaker_mode(gone ? "the earphone was unplugged" : "the speaker failed");
+            spk_stop(!gone);
+            if (gone) unmute_speaker_soon(audctl_ok);
             remove(REQ_PATH);
             char s[128];
             snprintf(s, sizeof(s), "error %s\n", P.error);
@@ -576,7 +613,9 @@ static void ctl_loop(void *arg) {
                 P.failed = false;
             }
         } else if (!want && P.running) {
-            spk_stop();
+            bool spk_mode = g_speaker_mode;
+            leave_speaker_mode("the radio was switched off");
+            spk_stop(spk_mode);
             write_status("off\n");
         }
     }

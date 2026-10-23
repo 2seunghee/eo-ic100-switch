@@ -83,6 +83,7 @@ static struct {
     box        b_power, b_scan, b_left, b_right, b_star, b_tab[2], b_chip[MAX_LIST];
     spk_state  spk_state;                // usbhs-logmitm's speaker, read once a second in speaker mode
     bool       switching;                // the output mode changed: waiting for the earphone to come back
+    u64        switch_since;
     radio_mode pending;                  // and then the radio goes on in this mode (MODE_OFF: stays off)
     char       spk_why[96];
     box        b_dial, b_num;            // drag areas: the dial scale, the big frequency
@@ -219,11 +220,21 @@ static void stop_seek(void) {
     R.seeking = R.scanning = false;
 }
 
+static void begin_switch(radio_mode pending) {
+    R.pending = pending;
+    R.switching = true;
+    R.switch_since = now_ms();
+}
+
 static void radio_off(void) {
     stop_seek();
     if (R.mode == MODE_SPEAKER) {
+        // Speaker mode lasts only while the radio plays on the speaker: usbhs-logmitm (0.3.10) goes
+        // back to earphone mode when the playback ends, and re-enumerates the earphone for it.
         spkctl_request(false, 0);
         fm_set(&R.dev, FM_SET_RECORDING, 0);
+        begin_switch(MODE_OFF);
+        say("라디오를 껐습니다. 이어폰 모드로 돌아갑니다.");
     } else if (R.mode == MODE_EARPHONE) {
         fm_set(&R.dev, FM_SET_POWER, 0);
     }
@@ -279,10 +290,16 @@ static void radio_start(radio_mode m) {
         if (st == SPK_RUNNING || st == SPK_ERROR) break;
     }
     log_file("speaker: usbhs-logmitm says %d %s\n", st, why);
-    if (st != SPK_RUNNING) {
+    if (st != SPK_RUNNING) {   // never played: back to earphone mode by hand, the radio on there
         spkctl_request(false, 0);
+        fm_set(&R.dev, FM_SET_RECORDING, 0);
+        R.mode = MODE_OFF;
+        spkctl_set_mode(false);
+        for (int i = 0; i < 20 && spkctl_mode() != 0; i++) svcSleepThread(100000000ULL);
+        begin_switch(MODE_EARPHONE);
+        Result rc = fm_reset(&R.dev);
+        log_file("speaker failed: back to earphone mode, earphone reset: %s\n", rc_str(rc));
         say("스피커로 듣기 실패: %s", st == SPK_ERROR ? why : "응답 없음");
-        radio_start(MODE_EARPHONE);
         return;
     }
     say("스피커로 듣는 중. +로 나가도 계속 나옵니다.");
@@ -307,6 +324,16 @@ static void switch_mode(void) {
     }
     bool to_speaker = cur == 0;
     bool was_on = R.mode != MODE_OFF;
+    if (to_speaker && !was_on) {   // speaker mode only with the radio on (it ends with the radio)
+        say("스피커 모드는 라디오를 켠 뒤에 바꿀 수 있습니다.");
+        return;
+    }
+    if (!to_speaker && R.mode == MODE_SPEAKER) {   // the driver goes back by itself (radio_off)
+        radio_off();
+        begin_switch(MODE_EARPHONE);
+        say("이어폰 모드로 바꾸는 중... (몇 초)");
+        return;
+    }
     radio_off();
     spkctl_set_mode(to_speaker);
     int now = cur;
@@ -318,8 +345,7 @@ static void switch_mode(void) {
         say("드라이버가 모드를 바꾸지 않았습니다.");
         return;
     }
-    R.pending = was_on ? (to_speaker ? MODE_SPEAKER : MODE_EARPHONE) : MODE_OFF;
-    R.switching = true;
+    begin_switch(was_on ? (to_speaker ? MODE_SPEAKER : MODE_EARPHONE) : MODE_OFF);
     // A reset re-enumerates once, and the audio sysmodule has read it again within 0.5 s (0.4.1 log):
     // quick_settle (audio holds IF2) is enough, no 6 s wait; the device is polled faster meanwhile.
     Result rc = fm_reset(&R.dev);
@@ -935,6 +961,11 @@ int main(int argc, char **argv) {
             R.last_dev = t;
             fmdev_state before = R.dev.state;
             fm_poll_device(&R.dev);
+            if (R.switching && R.dev.state == FMDEV_OPEN && before == FMDEV_OPEN && t - R.switch_since > 5000) {
+                R.switching = false;   // the earphone never went away: nothing to wait for
+                if (R.pending != MODE_OFF) radio_start(R.pending);
+                R.pending = MODE_OFF;
+            }
             if (R.mode == MODE_SPEAKER) {
                 spk_state was = R.spk_state;
                 R.spk_state = spkctl_status(R.spk_why, sizeof(R.spk_why));
